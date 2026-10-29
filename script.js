@@ -344,7 +344,7 @@
             <button class="btn" type="button" data-add>＋ 新增一筆</button>
             ${legacy.length ? `<button class="btn btn--ghost" type="button" data-import>匯入這台瀏覽器的舊資料（${legacy.length} 筆）</button>` : ''}
           </div>` : ''}
-          ${id === "queenie" ? monthlyStatsHTML(mine) : ""}
+          ${monthlyStatsHTML(mine)}
         </aside>
         <div class="masonry" data-wall data-filter="${filter}">
           ${shown.length

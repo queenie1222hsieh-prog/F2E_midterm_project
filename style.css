@@ -143,9 +143,60 @@ body[data-owner] .site-title {
         background: var(--accent);
     }
 
-/* Figma 的個人頁與心得頁沒有這排導覽 */
-body[data-view="owner"] .site-nav, body[data-view="entry"] .site-nav {
+/* 個人頁（queenie / jnmin 除外）與心得頁隱藏導覽 */
+body[data-view="owner"]:not([data-owner="queenie"]):not([data-owner="jnmin"]) .site-nav,
+body[data-view="entry"] .site-nav {
     display: none;
+}
+
+/* queenie 頁：導覽移到左上，與 Our Shelves 頂端對齊 */
+body[data-owner="queenie"] .site-nav {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+    top: 50px;
+    bottom: auto;
+    left: 24px;
+    right: auto;
+    gap: clamp(16px, 3vw, 48px);
+    font-size: var(--sz-sm);
+    animation: queenie-nav-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes queenie-nav-in {
+    from {
+        opacity: 0.6;
+        transform: translateX(calc(50vw - 24px - 50%)) translateY(73px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) translateY(0);
+    }
+}
+
+/* jnmin 頁：導覽移到右上，與 Our Shelves 頂端對齊（鏡像） */
+body[data-owner="jnmin"] .site-nav {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-end;
+    top: 50px;
+    bottom: auto;
+    right: 24px;
+    left: auto;
+    gap: clamp(16px, 3vw, 48px);
+    font-size: var(--sz-sm);
+    animation: jnmin-nav-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes jnmin-nav-in {
+    from {
+        opacity: 0.6;
+        transform: translateX(calc(-50vw + 24px + 50%)) translateY(73px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) translateY(0);
+    }
 }
 
 .tabs {
@@ -221,8 +272,8 @@ body[data-view="owner"] .site-nav, body[data-view="entry"] .site-nav {
 
 .page {
     max-width: 640px;
-    margin: 0 auto;
-    padding-top: 24px;
+    margin: 0;
+    padding-top: 28px;
     line-height: 1.8;
 }
 
@@ -800,6 +851,7 @@ dialog {
 
     dialog h2 {
         margin: 0 0 18px;
+        font-size: var(--sz-md);
         font-weight: 500;
     }
 
@@ -823,7 +875,7 @@ dialog {
 
     .form-grid input, .form-grid select, .form-grid textarea {
         padding: 10px 12px;
-        border: 1px solid #d8d4be;
+        border: 1px solid var(--line);
         border-radius: 10px;
         background: #fffef7;
         color: var(--ink);
@@ -914,6 +966,11 @@ dialog {
         font-size: var(--sz-sm);
     }
 
+    body[data-owner="queenie"] .site-nav,
+    body[data-owner="jnmin"] .site-nav {
+        display: none;
+    }
+
     .tabs {
         gap: 6px;
         left: 6px;
@@ -999,7 +1056,7 @@ dialog {
 
 .genres {
     max-width: 960px;
-    margin: 0 auto;
+    margin: 0;
     padding-top: 28px;
 }
 
