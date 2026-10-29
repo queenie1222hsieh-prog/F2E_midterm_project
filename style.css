@@ -818,6 +818,17 @@ dialog {
         margin: 14px 0 0;
     }
 
+.link-btn {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
 .dialog-actions {
     display: flex;
     justify-content: flex-end;

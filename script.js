@@ -545,21 +545,26 @@
   }
 
   /* ------------------------------------------------------------------
-   * 登入：用 email 收登入連結。登入後查 owners 表，知道自己是哪個書架的主人。
+   * 登入：平常用 email + 密碼；還沒設密碼或忘記密碼時改寄登入連結。
+   * 登入後查 owners 表，知道自己是哪個書架的主人。
    * ------------------------------------------------------------------ */
   const authBtn = $('[data-auth]');
   const loginDialog = $('#login-dialog');
   const loginForm = $('#login-form');
   const loginStatus = $('#login-status');
+  const accountDialog = $('#account-dialog');
+  const accountForm = $('#account-form');
+  const accountStatus = $('#account-status');
 
   let myId = null;     // 登入帳號的 user id
   let myEmail = '';
   let me = null;       // 這個帳號是哪個書架的主人：'queenie' | 'jnmin' | null
-  const canEdit = (owner) => !!me && me === owner;
+  /* 兩位主人登入後都能改兩個書架 */
+  const canEdit = () => !!me;
 
   function updateAuthButton() {
     authBtn.hidden = !sb;
-    authBtn.textContent = myId ? `${me ? PEOPLE[me].name : myEmail} · 登出` : '登入';
+    authBtn.textContent = myId ? `${me ? PEOPLE[me].name : myEmail} · 帳號` : '登入';
   }
 
   async function loadMe(session) {
@@ -586,8 +591,12 @@
   }
 
   authBtn.addEventListener('click', () => {
-    if (myId) sb.auth.signOut();
-    else {
+    if (myId) {
+      accountForm.reset();
+      $('#account-email').textContent = `目前登入：${myEmail}`;
+      accountStatus.textContent = '';
+      accountDialog.showModal();
+    } else {
       loginForm.reset();
       loginStatus.textContent = '';
       loginDialog.showModal();
@@ -598,29 +607,66 @@
   loginForm.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const email = loginForm.elements.email.value.trim();
+    const password = loginForm.elements.password.value;
+    if (!password) { loginStatus.textContent = '請輸入密碼。'; return; }
     const btn = loginForm.querySelector('[type="submit"]');
     btn.disabled = true;
+    loginStatus.textContent = '登入中…';
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    btn.disabled = false;
+    if (!error) { loginDialog.close(); return; }
+    loginStatus.textContent = error.code === 'invalid_credentials'
+      ? 'email 或密碼不對。還沒設定過密碼的話，請先用下面的登入連結登入一次。'
+      : `登入失敗：${error.message}`;
+  });
+
+  loginForm.querySelector('[data-magic]').addEventListener('click', async (ev) => {
+    const input = loginForm.elements.email;
+    if (!input.reportValidity()) return;
+    ev.target.disabled = true;
     loginStatus.textContent = '寄送中…';
     const { error } = await sb.auth.signInWithOtp({
-      email, options: { emailRedirectTo: location.origin + location.pathname }
+      email: input.value.trim(), options: { emailRedirectTo: location.origin + location.pathname }
     });
-    btn.disabled = false;
+    ev.target.disabled = false;
     loginStatus.textContent = error
       ? `寄送失敗：${error.message}`
-      : `已寄出登入連結到 ${email}，請到信箱點連結。`;
+      : `已寄出登入連結到 ${input.value.trim()}，請用這個瀏覽器打開信裡的連結，登入後再按右上角設定密碼。`;
   });
 
   loginDialog.querySelector('[data-cancel]').addEventListener('click', () => loginDialog.close());
 
+  accountForm.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const { password, confirm: again } = accountForm.elements;
+    if (password.value !== again.value) { accountStatus.textContent = '兩次輸入的密碼不一樣。'; return; }
+    const btn = accountForm.querySelector('[type="submit"]');
+    btn.disabled = true;
+    accountStatus.textContent = '設定中…';
+    const { error } = await sb.auth.updateUser({ password: password.value });
+    btn.disabled = false;
+    accountForm.reset();
+    accountStatus.textContent = error
+      ? `設定失敗：${error.message}`
+      : '密碼設定好了，下次可以用 email + 密碼登入。';
+  });
+
+  accountForm.querySelector('[data-signout]').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    accountDialog.close();
+  });
+
+  accountForm.querySelector('[data-cancel]').addEventListener('click', () => accountDialog.close());
+
   /* ------------------------------------------------------------------
-   * 新增／編輯／刪除：只有登入的本人能改自己的書架，資料庫也會再檢查一次
+   * 新增／編輯／刪除：只有登入的主人能改，資料庫也會再檢查一次
    * ------------------------------------------------------------------ */
-  function openDialog(entry) {
+  function openDialog(entry, ownerDefault) {
     form.reset();
     editingId = entry ? entry.id : null;
     $('#dialog-title').textContent = entry ? '編輯紀錄' : '新增一筆';
     const d = entry || {
-      type: 'book', title: '', creator: '',
+      owner: ownerDefault || me, type: 'book', title: '', creator: '',
       date: todayStr(), rating: 4, cover: '', review: '', quote: ''
     };
     Object.keys(d).forEach(k => { if (form.elements[k]) form.elements[k].value = d[k]; });
@@ -633,7 +679,7 @@
     if (!me) return;
     const fd = Object.fromEntries(new FormData(form));
     const data = {
-      owner: me,
+      owner: PEOPLE[fd.owner] ? fd.owner : me,
       type: fd.type === 'movie' ? 'movie' : 'book',
       title: (fd.title || '').trim(),
       creator: (fd.creator || '').trim(),
@@ -676,7 +722,7 @@
   }
 
   /* ------------------------------------------------------------------
-   * 匯入：把改用雲端前存在這台瀏覽器的舊紀錄搬上去（範例資料不匯入）
+   * 匯入：把改用雲端前存在這台瀏覽器的舊紀錄（兩人的）搬上去，範例資料不匯入
    * ------------------------------------------------------------------ */
   function readLegacy() {
     try {
@@ -689,7 +735,7 @@
   function legacyEntries() {
     return readLegacy()
       .map(e => (e.owner === 'jimi' ? { ...e, owner: 'jnmin' } : e))
-      .filter(e => e.owner === me && e.title &&
+      .filter(e => PEOPLE[e.owner] && e.title &&
         !(String(e.id).startsWith('seed') && e.review === SAMPLE_REVIEW));
   }
 
@@ -697,7 +743,7 @@
     const list = legacyEntries();
     if (!list.length || !confirm(`要把這台瀏覽器裡的 ${list.length} 筆舊紀錄匯入雲端嗎？`)) return;
     const rows = list.map(e => ({
-      owner: me,
+      owner: e.owner,
       type: e.type === 'movie' ? 'movie' : 'book',
       title: String(e.title).trim().slice(0, 80),
       creator: e.creator || '',
@@ -709,7 +755,7 @@
     }));
     const { error } = await sb.from('entries').insert(rows);
     if (error) { alert(`匯入失敗：${error.message}`); return; }
-    /* 匯入成功的從舊資料移除，避免重複匯入；另一位主人的舊資料保留 */
+    /* 匯入成功的從舊資料移除，避免重複匯入 */
     const done = new Set(list.map(e => e.id));
     try {
       localStorage.setItem(LEGACY_KEY, JSON.stringify(readLegacy().filter(e => !done.has(e.id))));
@@ -740,7 +786,7 @@
       filter = t.dataset.filter;
       renderOwner(currentOwner);
     } else if (t.hasAttribute('data-add')) {
-      openDialog(null);
+      openDialog(null, currentOwner);
     } else if (t.hasAttribute('data-import')) {
       importLegacy();
     } else if (t.dataset.edit) {
@@ -751,7 +797,7 @@
   });
 
   document.addEventListener('keydown', (ev) => {
-    if (document.body.dataset.view !== 'home' || dialog.open || loginDialog.open || !homeList.length) return;
+    if (document.body.dataset.view !== 'home' || dialog.open || loginDialog.open || accountDialog.open || !homeList.length) return;
     if (ev.key === 'ArrowLeft') setHome(homeIndex - 1);
     else if (ev.key === 'ArrowRight') setHome(homeIndex + 1);
     else return;

@@ -37,6 +37,13 @@
         <form id="entry-form" method="dialog">
             <h2 id="dialog-title">新增一筆</h2>
             <div class="form-grid">
+                <label class="full">
+                    誰的書架
+                    <select name="owner">
+                        <option value="queenie">queenie</option>
+                        <option value="jnmin">Jnmin</option>
+                    </select>
+                </label>
                 <label>
                     類型
                     <select name="type">
@@ -89,17 +96,45 @@
     <dialog id="login-dialog" aria-labelledby="login-title">
         <form id="login-form" method="dialog">
             <h2 id="login-title">登入</h2>
-            <p class="dialog-note">輸入 email，會收到一封登入連結。只有 queenie 和 Jnmin 的帳號可以編輯書架。</p>
+            <p class="dialog-note">只有 queenie 和 Jnmin 的帳號可以編輯書架。</p>
             <div class="form-grid">
                 <label class="full">
                     Email
-                    <input type="email" name="email" required autocomplete="email">
+                    <input type="email" name="email" required autocomplete="username">
+                </label>
+                <label class="full">
+                    密碼
+                    <input type="password" name="password" autocomplete="current-password">
                 </label>
             </div>
             <p class="dialog-note" id="login-status" role="status"></p>
+            <p class="dialog-note">還沒設定密碼或忘記密碼？<button type="button" class="link-btn" data-magic>寄登入連結到這個 email</button></p>
             <div class="dialog-actions">
                 <button type="button" class="btn btn--ghost" data-cancel>取消</button>
-                <button type="submit" class="btn">寄送登入連結</button>
+                <button type="submit" class="btn">登入</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="account-dialog" aria-labelledby="account-title">
+        <form id="account-form" method="dialog">
+            <h2 id="account-title">帳號</h2>
+            <p class="dialog-note" id="account-email"></p>
+            <div class="form-grid">
+                <label>
+                    新密碼
+                    <input type="password" name="password" required minlength="6" autocomplete="new-password">
+                </label>
+                <label>
+                    再輸入一次
+                    <input type="password" name="confirm" required minlength="6" autocomplete="new-password">
+                </label>
+            </div>
+            <p class="dialog-note" id="account-status" role="status"></p>
+            <div class="dialog-actions">
+                <button type="button" class="btn btn--ghost" data-signout>登出</button>
+                <button type="button" class="btn btn--ghost" data-cancel>關閉</button>
+                <button type="submit" class="btn">設定密碼</button>
             </div>
         </form>
     </dialog>
