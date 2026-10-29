@@ -29,7 +29,7 @@
   /* 資料庫的空值轉成畫面用的空字串 */
   const fromRow = (r) => ({
     id: r.id, owner: r.owner, type: r.type, title: r.title, creator: r.creator || '',
-    date: r.date || '', rating: r.rating, cover: r.cover || '', review: r.review || '', quote: r.quote || ''
+    date: r.date || '', rating: r.rating, cover: r.cover || '', review: r.review || '', quote: r.quote || '', genre: r.genre || ''
   });
 
   function readCache() {
@@ -344,6 +344,7 @@
             <button class="btn" type="button" data-add>＋ 新增一筆</button>
             ${legacy.length ? `<button class="btn btn--ghost" type="button" data-import>匯入這台瀏覽器的舊資料（${legacy.length} 筆）</button>` : ''}
           </div>` : ''}
+          ${id === "queenie" ? monthlyStatsHTML(mine) : ""}
         </aside>
         <div class="masonry" data-wall data-filter="${filter}">
           ${shown.length
@@ -470,6 +471,7 @@
             <span class="field__label">${e.type === 'movie' ? '導演' : '作者'}</span>
             <span class="field__value">${esc(e.creator) || '—'}</span>
           </div>
+          ${e.genre ? `<div class="field"><span class="field__label">分類</span><a class="genre-tag" href="#/genres">${esc(e.genre)}</a></div>` : ""}
           <div class="field">
             <span class="field__label">${e.type === 'movie' ? '觀影日期' : '閱讀日期'} · 評分</span>
             <span class="field__value">${esc(e.date) || '—'} · <span class="stars">${stars(e.rating)}</span></span>
@@ -495,7 +497,17 @@
           </div>` : ''}
           <p class="meta">${esc(p.name)} 的${typeLabel(e.type)}</p>
         </aside>
+        <section class="entry__comments">
+          <h3 class="comments__heading">留言</h3>
+          <div class="comment-list"><p class="empty">載入中⋯</p></div>
+          <form class="comment-form" data-comment-form="${esc(e.id)}">
+            <input name="nickname" placeholder="你的名字" maxlength="30" required autocomplete="off">
+            <textarea name="message" placeholder="留言⋯" maxlength="300" rows="3" required></textarea>
+            <button class="btn" type="submit">留言</button>
+          </form>
+        </section>
       </article>`;
+    loadCommentsSection(e.id);
   }
 
   /* ------------------------------------------------------------------
@@ -525,6 +537,122 @@
   }
 
   /* ------------------------------------------------------------------
+   * Genres 分類頁
+   * ------------------------------------------------------------------ */
+  function renderGenres() {
+    setChrome("genres");
+    document.title = "Genres · Our Shelves";
+    const books = entries.filter(e => e.genre && e.genre.trim());
+    if (!books.length) {
+      app.innerHTML = loadState === "ready"
+        ? `<section class="page"><p class="eyebrow">Genres</p><h2>書籍分類</h2><p>還沒有分類資料。在新增書籍時填入分類欄位吧。</p></section>`
+        : statusHTML();
+      return;
+    }
+    const byGenre = {};
+    books.forEach(e => {
+      const g = e.genre.trim();
+      if (!byGenre[g]) byGenre[g] = [];
+      byGenre[g].push(e);
+    });
+    const sorted = Object.entries(byGenre).sort((a, b) => b[1].length - a[1].length);
+    app.innerHTML = `
+      <section class="genres">
+        <p class="eyebrow">Genres</p>
+        <h2 class="genres__title">書籍分類</h2>
+        <nav class="genre-chips" aria-label="分類">
+          ${sorted.map(([g]) => `<a class="genre-chip" href="#genre-${esc(g)}">${esc(g)}<span class="genre-chip__count">${byGenre[g].length}</span></a>`).join("")}
+        </nav>
+        ${sorted.map(([g, list]) => `<section class="genre-section" id="genre-${esc(g)}">
+          <h3 class="genre-section__title">${esc(g)}</h3>
+          <div class="genre-covers">
+            ${list.map(e => `<a class="genre-card" href="#/entry/${encodeURIComponent(e.id)}">${coverHTML(e)}</a>`).join("")}
+          </div>
+        </section>`).join("")}
+      </section>`;
+  }
+
+  /* ------------------------------------------------------------------
+   * 留言：便條紙
+   * ------------------------------------------------------------------ */
+  function stickyHTML(c) {
+    const date = c.created_at
+      ? new Date(c.created_at).toLocaleDateString("zh-TW", { year: "numeric", month: "long", day: "numeric" })
+      : "";
+    return `<div class="sticky">
+      <p class="sticky__name">${esc(c.nickname)}</p>
+      <p class="sticky__text">${esc(c.message)}</p>
+      ${date ? `<time class="sticky__time">${esc(date)}</time>` : ""}
+    </div>`;
+  }
+
+  async function loadComments(entryId) {
+    if (!sb) return [];
+    try {
+      const { data, error } = await sb.from("comments")
+        .select("nickname, message, created_at")
+        .eq("entry_id", entryId)
+        .order("created_at", { ascending: true });
+      if (error) return [];
+      return data || [];
+    } catch (_) { return []; }
+  }
+
+  async function loadCommentsSection(entryId) {
+    const list = app.querySelector(".comment-list");
+    if (!list) return;
+    const comments = await loadComments(entryId);
+    list.innerHTML = comments.length
+      ? comments.map(stickyHTML).join("")
+      : `<p class="empty comments__empty">還沒有留言，來第一個留言吧。</p>`;
+  }
+
+  async function submitComment(entryId, nickname, message, f) {
+    if (!sb) { alert("留言功能需要資料庫連線。"); return; }
+    const btn = f.querySelector("[type=submit]");
+    btn.disabled = true;
+    const { data, error } = await sb.from("comments").insert({
+      entry_id: entryId,
+      nickname: nickname.slice(0, 50),
+      message: message.slice(0, 500)
+    }).select("nickname, message, created_at").single();
+    btn.disabled = false;
+    if (error) { alert("留言失敗：" + error.message); return; }
+    f.reset();
+    const list = app.querySelector(".comment-list");
+    if (list) {
+      const empty = list.querySelector(".comments__empty");
+      if (empty) empty.remove();
+      list.insertAdjacentHTML("beforeend", stickyHTML(data));
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   * 每月閱讀統計（queenie）
+   * ------------------------------------------------------------------ */
+  function monthlyStatsHTML(ownerEntries) {
+    const counts = {};
+    ownerEntries.forEach(e => {
+      if (!e.date) return;
+      const ym = e.date.slice(0, 7);
+      counts[ym] = (counts[ym] || 0) + 1;
+    });
+    const months = Object.keys(counts).sort().slice(-12);
+    if (!months.length) return "";
+    const maxC = Math.max(...months.map(m => counts[m]));
+    return `<div class="monthly-stats">
+      <p class="eyebrow" style="margin-top:28px">每月紀錄</p>
+      <div class="monthly-chart">
+        ${months.map(m => `<div class="month-row">
+          <span class="month-label">${m.replace("-", "/")}</span>
+          <div class="month-bar-wrap"><div class="month-bar" style="width:${Math.round(counts[m] / maxC * 100)}%"></div></div>
+          <span class="month-count">${counts[m]}</span>
+        </div>`).join("")}
+      </div>
+    </div>`;
+  }
+
+  /* ------------------------------------------------------------------
    * 路由（網址 hash）
    * ------------------------------------------------------------------ */
   function route() {
@@ -534,6 +662,7 @@
     if (a === 'entry' && b) renderEntry(decodeURIComponent(b));
     else if (a === 'about') renderAbout();
     else if (a === 'donate') renderDonate();
+    else if (a === 'genres') renderGenres();
     else if (PEOPLE[a]) renderOwner(a);
     else renderHome();
     window.scrollTo({ top: 0 });
@@ -667,7 +796,7 @@
     $('#dialog-title').textContent = entry ? '編輯紀錄' : '新增一筆';
     const d = entry || {
       owner: ownerDefault || me, type: 'book', title: '', creator: '',
-      date: todayStr(), rating: 4, cover: '', review: '', quote: ''
+      date: todayStr(), rating: 4, cover: '', review: '', quote: '', genre: ''
     };
     Object.keys(d).forEach(k => { if (form.elements[k]) form.elements[k].value = d[k]; });
     dialog.showModal();
@@ -687,7 +816,8 @@
       rating: Math.min(5, Math.max(1, Number(fd.rating) || 4)),
       cover: normalizeCover(fd.cover),
       review: (fd.review || '').trim(),
-      quote: (fd.quote || '').trim()
+      quote: (fd.quote || '').trim(),
+      genre: (fd.genre || '').trim()
     };
     if (!data.title) return;
 
@@ -794,6 +924,17 @@
     } else if (t.dataset.delete) {
       removeEntry(t.dataset.delete);
     }
+  });
+
+  app.addEventListener('submit', (ev) => {
+    const f = ev.target.closest('[data-comment-form]');
+    if (!f) return;
+    ev.preventDefault();
+    const entryId = f.dataset.commentForm;
+    const nickname = (f.elements.nickname.value || '').trim();
+    const message = (f.elements.message.value || '').trim();
+    if (!nickname || !message) return;
+    submitComment(entryId, nickname, message, f);
   });
 
   document.addEventListener('keydown', (ev) => {

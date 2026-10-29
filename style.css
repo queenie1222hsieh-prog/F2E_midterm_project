@@ -975,6 +975,237 @@ dialog {
     }
 }
 
+/* ---------- Genres 分類頁 ---------- */
+
+.genres {
+    max-width: 960px;
+    margin: 0 auto;
+    padding-top: 28px;
+}
+
+.genres__title {
+    font-size: var(--sz-lg);
+    font-weight: 400;
+    margin: 0 0 28px;
+}
+
+.genre-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 52px;
+}
+
+.genre-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    text-decoration: none;
+    font-size: var(--sz-sm);
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.genre-chip:hover {
+    background: var(--accent);
+    border-color: var(--ink);
+}
+
+.genre-chip__count {
+    color: var(--muted);
+}
+
+.genre-section {
+    margin-bottom: 52px;
+    scroll-margin-top: 120px;
+}
+
+.genre-section__title {
+    font-size: var(--sz-md);
+    font-weight: 400;
+    margin: 0 0 18px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+}
+
+.genre-covers {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 18px;
+}
+
+.genre-card {
+    display: block;
+    text-decoration: none;
+}
+
+    .genre-card .cover {
+        height: auto;
+        aspect-ratio: 206 / 272;
+        border-radius: 0;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .genre-card:hover .cover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 22px rgba(0, 0, 0, 0.14);
+    }
+
+/* 書籍詳情頁的分類標籤 */
+.genre-tag {
+    display: inline-block;
+    padding: 3px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    font-size: var(--sz-sm);
+    text-decoration: none;
+    color: var(--ink);
+    transition: background 0.15s ease;
+}
+
+.genre-tag:hover {
+    background: var(--accent);
+    border-color: var(--ink);
+}
+
+/* ---------- 留言區 ---------- */
+
+.entry__comments {
+    grid-column: 1 / -1;
+    margin-top: 52px;
+    padding-top: 36px;
+    border-top: 1px solid var(--line);
+}
+
+.comments__heading {
+    font-size: var(--sz-md);
+    font-weight: 400;
+    margin: 0 0 24px;
+}
+
+.comment-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 32px;
+    min-height: 20px;
+}
+
+.sticky {
+    width: 180px;
+    min-height: 130px;
+    padding: 16px;
+    background: var(--note);
+    border-radius: 3px;
+    box-shadow: 2px 4px 14px rgba(0, 0, 0, 0.1);
+    transform: rotate(var(--sticky-rot, -1.5deg));
+}
+
+.sticky:nth-child(even) {
+    --sticky-rot: 1.2deg;
+    background: var(--pink);
+}
+
+.sticky:nth-child(3n) {
+    --sticky-rot: -0.5deg;
+    background: #fff;
+}
+
+.sticky__name {
+    margin: 0 0 8px;
+    font-weight: 600;
+    font-size: var(--sz-sm);
+}
+
+.sticky__text {
+    margin: 0 0 10px;
+    font-size: var(--sz-sm);
+    line-height: 1.65;
+    font-variation-settings: "SOFT" 60, "WONK" 1;
+}
+
+.sticky__time {
+    display: block;
+    font-size: var(--sz-sm);
+    color: var(--muted);
+}
+
+.comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 420px;
+}
+
+    .comment-form input,
+    .comment-form textarea {
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fff;
+        color: var(--ink);
+        font-size: var(--sz-sm);
+        font-family: var(--serif);
+        font-variation-settings: "SOFT" 0, "WONK" 1;
+        resize: vertical;
+    }
+
+.comments__empty {
+    color: var(--muted);
+    padding: 0;
+}
+
+/* ---------- 每月統計圖表 ---------- */
+
+.monthly-stats {
+    margin-top: 4px;
+}
+
+.monthly-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 10px;
+}
+
+.month-row {
+    display: grid;
+    grid-template-columns: 54px 1fr 24px;
+    align-items: center;
+    gap: 8px;
+}
+
+.month-label {
+    font-size: var(--sz-sm);
+    color: var(--muted);
+    text-align: right;
+}
+
+.month-bar-wrap {
+    height: 12px;
+    background: var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.month-bar {
+    height: 100%;
+    background: var(--ink);
+    border-radius: 999px;
+    min-width: 4px;
+    transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.month-count {
+    font-size: var(--sz-sm);
+    color: var(--muted);
+    text-align: center;
+}
+
 @media (prefers-reduced-motion: reduce) {
     * {
         transition: none !important;
