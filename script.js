@@ -376,11 +376,55 @@
       c.style.transform = '';
     });
     if (wall) wall.onwheel = wall.ontouchstart = wall.ontouchmove = null;
+    wall.querySelectorAll('.wall-arrow').forEach(b => b.remove());
     // 手機版書牆不捲動
     if (!cols.length || getComputedStyle(wall).overflowY === 'visible') return;
     const stagger = filter === 'all' ? WALL_STAGGER : 0;
-    // 書／電影篩選模式：靜態顯示，不循環捲動
-    if (filter !== 'all') return;
+    // 書／電影篩選模式：arrow buttons 手動捲動，不循環
+    if (filter !== 'all') {
+      const track = wall.querySelector('.masonry__track');
+      if (!track) return;
+      requestAnimationFrame(() => {
+        const padTop = parseFloat(getComputedStyle(wall).paddingTop) || 0;
+        const maxScroll = Math.max(0, padTop + track.offsetHeight - wall.clientHeight);
+        if (maxScroll <= 0) return;
+        let scrollPos = 0;
+        const upBtn = document.createElement('button');
+        upBtn.className = 'wall-arrow wall-arrow--up';
+        upBtn.type = 'button';
+        upBtn.setAttribute('aria-label', '往上');
+        upBtn.textContent = '↑';
+        const downBtn = document.createElement('button');
+        downBtn.className = 'wall-arrow wall-arrow--down';
+        downBtn.type = 'button';
+        downBtn.setAttribute('aria-label', '往下');
+        downBtn.textContent = '↓';
+        wall.appendChild(upBtn);
+        wall.appendChild(downBtn);
+        const setPos = (target, animated) => {
+          scrollPos = Math.max(0, Math.min(maxScroll, target));
+          track.style.transition = animated ? 'transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)' : 'none';
+          track.style.transform = `translateY(${-scrollPos}px)`;
+          upBtn.hidden = scrollPos <= 0;
+          downBtn.hidden = scrollPos >= maxScroll;
+        };
+        upBtn.onclick = () => setPos(scrollPos - wall.clientHeight * 0.8, true);
+        downBtn.onclick = () => setPos(scrollPos + wall.clientHeight * 0.8, true);
+        wall.onwheel = (e) => {
+          e.preventDefault();
+          setPos(scrollPos + e.deltaY * (e.deltaMode === 1 ? 16 : 1), false);
+        };
+        let touchY0 = 0;
+        wall.ontouchstart = (e) => { touchY0 = e.touches[0].clientY; };
+        wall.ontouchmove = (e) => {
+          e.preventDefault();
+          setPos(scrollPos - (e.touches[0].clientY - touchY0), false);
+          touchY0 = e.touches[0].clientY;
+        };
+        setPos(0, false);
+      });
+      return;
+    }
     const activeCols = cols.filter(c => c.children.length);
     if (!activeCols.length) return;
 
