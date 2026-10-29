@@ -1,0 +1,110 @@
+﻿<!doctype html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OurShelves</title>
+    <meta name="description" content="我們的書架：兩個人的閱讀與觀影心得紀錄。">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,100..900,0..100,0..1&family=Inter:wght@400;500;600;700;900&family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-view="home">
+
+    <header class="site-header">
+        <h1 class="site-title"><a href="#/">Our Shelves</a></h1>
+        <button class="auth-btn" type="button" data-auth hidden>登入</button>
+        <nav class="site-nav" aria-label="網站導覽">
+            <a href="#/about" data-nav-link="about">About us</a>
+            <a href="#/" data-nav-link="home">Home</a>
+            <a href="#/donate" data-nav-link="donate">Donate&lt;3</a>
+        </nav>
+        <nav class="tabs" aria-label="書架">
+            <a class="tab tab--queenie" href="#/queenie" data-tab="queenie">queenie’s shelf</a>
+            <a class="tab tab--jnmin" href="#/jnmin" data-tab="jnmin">Jnmin’s shelf</a>
+        </nav>
+    </header>
+
+    <main id="app" class="panel"></main>
+
+    <footer class="site-footer">
+        <span>The Shelves Of Ourselves</span>
+        <span id="year"></span>
+    </footer>
+
+    <dialog id="entry-dialog" aria-labelledby="dialog-title">
+        <form id="entry-form" method="dialog">
+            <h2 id="dialog-title">新增一筆</h2>
+            <div class="form-grid">
+                <label>
+                    類型
+                    <select name="type">
+                        <option value="book">書</option>
+                        <option value="movie">電影</option>
+                    </select>
+                </label>
+                <label>
+                    評分
+                    <select name="rating">
+                        <option value="5">★★★★★</option>
+                        <option value="4">★★★★☆</option>
+                        <option value="3">★★★☆☆</option>
+                        <option value="2">★★☆☆☆</option>
+                        <option value="1">★☆☆☆☆</option>
+                    </select>
+                </label>
+                <label class="full">
+                    標題
+                    <input name="title" required maxlength="80" autocomplete="off">
+                </label>
+                <label>
+                    作者／導演
+                    <input name="creator" maxlength="60" autocomplete="off">
+                </label>
+                <label>
+                    日期
+                    <input type="date" name="date">
+                </label>
+                <label class="full">
+                    封面圖片網址（選填）
+                    <input type="url" name="cover" placeholder="https://" autocomplete="off">
+                </label>
+                <label class="full">
+                    心得
+                    <textarea name="review" rows="6"></textarea>
+                </label>
+                <label class="full">
+                    摘錄
+                    <textarea name="quote" rows="2"></textarea>
+                </label>
+            </div>
+            <div class="dialog-actions">
+                <button type="button" class="btn btn--ghost" data-cancel>取消</button>
+                <button type="submit" class="btn">儲存</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="login-dialog" aria-labelledby="login-title">
+        <form id="login-form" method="dialog">
+            <h2 id="login-title">登入</h2>
+            <p class="dialog-note">輸入 email，會收到一封登入連結。只有 queenie 和 Jnmin 的帳號可以編輯書架。</p>
+            <div class="form-grid">
+                <label class="full">
+                    Email
+                    <input type="email" name="email" required autocomplete="email">
+                </label>
+            </div>
+            <p class="dialog-note" id="login-status" role="status"></p>
+            <div class="dialog-actions">
+                <button type="button" class="btn btn--ghost" data-cancel>取消</button>
+                <button type="submit" class="btn">寄送登入連結</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
