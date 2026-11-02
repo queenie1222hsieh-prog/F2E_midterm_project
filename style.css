@@ -11,9 +11,8 @@
     --line: #E6E2CC;
     --serif: "Fraunces", "Noto Serif TC", Georgia, serif;
     --sans: "Inter", "Noto Sans TC", system-ui, -apple-system, sans-serif;
-    --header-h: 241px;
-    --tab-h: 50px;
-    --tab-h-active: 100px;
+    --header-h: 64px;
+    --panel-x: clamp(20px, 5vw, 72px);
     --accent: var(--yellow);
     --sz-lg: clamp(44px, 6.5vw, 88px);
     --sz-md: 22px;
@@ -58,49 +57,40 @@ a {
     outline-offset: 3px;
 }
 
-/* ---------- Header & tabs ---------- */
+/* ---------- Header ---------- */
 
 .site-header {
     position: relative;
     flex: none;
     height: var(--header-h);
+    display: flex;
+    align-items: center;
+    padding: 0 clamp(16px, 4vw, 40px);
+    gap: 16px;
+    background: var(--cream);
+    border-bottom: 1px solid var(--line);
 }
 
 .site-title {
-    position: absolute;
-    top: 17px;
-    left: 0;
-    right: 0;
-    margin: 0;
-    padding: 0 24px;
+    font-size: clamp(16px, 2.2vw, 22px);
     font-weight: 400;
-    font-size: var(--sz-lg);
-    line-height: 1.1;
-    text-align: center;
-    transition: top 0.25s ease;
+    margin: 0;
+    flex-shrink: 0;
 }
 
     .site-title a {
         display: inline-block;
         text-decoration: none;
         white-space: nowrap;
-        transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+        color: var(--ink);
     }
 
-/* 個人頁與心得頁：標題移到被選分頁的另一側 */
-body[data-owner] .site-title {
-    top: 50px;
-}
-
 .site-nav {
-    position: absolute;
-    top: 123px;
-    left: 0;
-    right: 0;
     display: flex;
+    gap: clamp(20px, 3.5vw, 40px);
+    flex: 1;
     justify-content: center;
-    gap: clamp(32px, 6.6vw, 96px);
-    font-size: var(--sz-md);
+    font-size: var(--sz-sm);
     font-weight: 500;
 }
 
@@ -125,11 +115,8 @@ body[data-owner] .site-title {
         }
 
 .auth-btn {
-    position: absolute;
-    top: 16px;
-    right: 24px;
-    z-index: 1;
-    padding: 4px 14px;
+    flex-shrink: 0;
+    padding: 5px 14px;
     border: 1px solid var(--ink);
     border-radius: 999px;
     background: transparent;
@@ -143,110 +130,56 @@ body[data-owner] .site-title {
         background: var(--accent);
     }
 
-/* 個人頁（queenie / jnmin 除外）與心得頁隱藏導覽 */
-body[data-view="owner"]:not([data-owner="queenie"]):not([data-owner="jnmin"]) .site-nav,
-body[data-view="entry"] .site-nav {
+.ham-btn {
     display: none;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 36px;
+    text-align: center;
+    flex-shrink: 0;
+    padding: 0;
 }
 
-/* queenie 頁：導覽移到左上，與 Our Shelves 頂端對齊 */
-body[data-owner="queenie"] .site-nav {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: flex-start;
-    top: 50px;
-    bottom: auto;
-    left: 24px;
-    right: auto;
-    gap: clamp(16px, 3vw, 48px);
-    font-size: var(--sz-sm);
-    animation: queenie-nav-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes queenie-nav-in {
-    from {
-        opacity: 0.6;
-        transform: translateX(calc(50vw - 24px - 50%)) translateY(73px);
+    .ham-btn:hover {
+        background: var(--accent);
+        border-color: transparent;
     }
-    to {
-        opacity: 1;
-        transform: translateX(0) translateY(0);
-    }
-}
 
-/* jnmin 頁：導覽移到右上，與 Our Shelves 頂端對齊（鏡像） */
-body[data-owner="jnmin"] .site-nav {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: flex-end;
-    top: 50px;
-    bottom: auto;
-    right: 24px;
-    left: auto;
-    gap: clamp(16px, 3vw, 48px);
-    font-size: var(--sz-sm);
-    animation: jnmin-nav-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
+.mob-nav[hidden] { display: none; }
 
-@keyframes jnmin-nav-in {
-    from {
-        opacity: 0.6;
-        transform: translateX(calc(-50vw + 24px + 50%)) translateY(73px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0) translateY(0);
-    }
-}
-
-.tabs {
-    position: absolute;
-    left: 12px;
-    right: 15px;
-    bottom: 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    align-items: end;
-}
-
-.tab {
-    --c: var(--yellow);
+.mob-nav {
+    flex: none;
+    background: var(--cream);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
     display: flex;
-    align-items: center;
-    justify-content: center;
-    height: var(--tab-h);
-    border-radius: 40px 40px 0 0;
-    background: var(--c);
-    font-size: var(--sz-md);
+    flex-direction: column;
+}
+
+.mob-nav a {
+    padding: 14px clamp(16px, 4vw, 40px);
+    font-size: 15px;
     font-weight: 500;
     text-decoration: none;
-    transition: height 0.25s ease, font-weight 0.2s ease;
+    color: var(--ink);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.tab--queenie {
-    --c: var(--pink);
-}
-
-.tab--jnmin {
-    --c: var(--salmon);
-}
-
-.tab:hover {
-    height: calc(var(--tab-h) + 8px);
-}
-
-.tab[aria-current="page"] {
-    height: var(--tab-h-active);
-    font-weight: 900;
-}
+    .mob-nav a:hover {
+        background: rgba(0, 0, 0, 0.03);
+    }
 
 /* ---------- Panel & footer ---------- */
 
 .panel {
     flex: 1;
     min-height: 715px;
-    padding: 48px clamp(20px, 5vw, 72px) 64px;
+    padding: 48px var(--panel-x) 64px;
     background: #fff;
 }
 
@@ -385,12 +318,30 @@ body[data-owner="jnmin"] .site-nav {
         display: none;
     }
 
+/* ---------- Home: layout ---------- */
+
+.home {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.home-hero {
+    font-size: clamp(52px, 7.5vw, 80px);
+    font-weight: 400;
+    text-align: center;
+    line-height: 1.05;
+    letter-spacing: -.02em;
+    margin: 0 0 4px;
+}
+
 /* ---------- Home: Cover Flow carousel ---------- */
 
 .shelf {
     position: relative;
+    width: calc(100% + 2 * var(--panel-x));
     height: 400px;
-    margin: 40px auto 0;
+    margin: 32px auto 0;
     overflow: hidden;
 }
 
@@ -422,12 +373,18 @@ body[data-owner="jnmin"] .site-nav {
         filter: saturate(0.55) brightness(0.88);
     }
 
+    .book[data-offset="-3"] .cover,
+    .book[data-offset="3"] .cover {
+        filter: saturate(0.30) brightness(0.82);
+    }
+
 .shelf-controls {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 16px;
     margin-top: 40px;
+    width: 100%;
 }
 
 .arrow {
@@ -466,6 +423,7 @@ body[data-owner="jnmin"] .site-nav {
 .danmaku {
     position: relative;
     overflow: hidden;
+    width: 100%;
     height: 150px;
     margin-top: 32px;
     background: #fff;
@@ -486,6 +444,157 @@ body[data-owner="jnmin"] .site-nav {
 @keyframes danmaku-float {
     from { transform: translateX(100vw); }
     to   { transform: translateX(-100%); }
+}
+
+/* ---------- Home: Shelf entry cards ---------- */
+
+.shelf-entries {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    width: 100%;
+    max-width: 640px;
+    margin-top: 24px;
+}
+
+.shelf-entry {
+    display: block;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    text-decoration: none;
+    color: var(--ink);
+    background: #fff;
+    transition: transform 0.22s, box-shadow 0.22s;
+}
+
+    .shelf-entry:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+    }
+
+    .shelf-entry:focus-visible {
+        outline: 3px solid var(--ink);
+        outline-offset: 2px;
+    }
+
+.se-head {
+    padding: 14px 16px 12px;
+}
+
+    .shelf-entry.se-queenie .se-head {
+        background: var(--pink);
+    }
+
+    .shelf-entry.se-jnmin .se-head {
+        background: var(--salmon);
+    }
+
+.se-name {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 3px;
+}
+
+.se-stat {
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.se-scroll {
+    overflow: hidden;
+    height: 210px;
+    display: flex;
+    gap: 8px;
+    padding: 8px 10px;
+    background: #fff;
+}
+
+.se-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    animation: se-col-up 70s linear infinite;
+    will-change: transform;
+    min-width: 0;
+    align-self: flex-start;
+}
+
+    .se-col:nth-child(2) {
+        animation-name: se-col-down;
+        animation-duration: 85s;
+        animation-delay: -20s;
+    }
+
+    .se-col:nth-child(3) {
+        animation-duration: 95s;
+        animation-delay: -40s;
+    }
+
+    .shelf-entry:hover .se-col {
+        animation-play-state: paused;
+    }
+
+@keyframes se-col-up {
+    from { transform: translateY(0); }
+    to   { transform: translateY(-50%); }
+}
+
+@keyframes se-col-down {
+    from { transform: translateY(-50%); }
+    to   { transform: translateY(0); }
+}
+
+.se-bk {
+    display: block;
+    width: 100%;
+    flex-shrink: 0;
+    border-radius: 2px 5px 5px 2px;
+    box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.12);
+    aspect-ratio: 206 / 272;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+    .se-bk::before {
+        content: "";
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 7%;
+        background: rgba(0, 0, 0, 0.09);
+        border-radius: 2px 0 0 2px;
+    }
+
+.se-foot {
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fafaf8;
+    border-top: 1px solid var(--line);
+    font-family: var(--sans);
+}
+
+.se-recent {
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.se-enter {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    margin-left: 8px;
+    flex-shrink: 0;
 }
 
 /* ---------- Owner page ---------- */
@@ -520,14 +629,6 @@ body[data-view="owner"] .panel {
     grid-template-columns: minmax(0, 1fr) minmax(280px, 459px);
     gap: 48px;
     height: 715px;
-}
-
-body[data-owner="jnmin"] .owner {
-    grid-template-columns: minmax(280px, 459px) minmax(0, 1fr);
-}
-
-body[data-owner="jnmin"] .masonry {
-    order: -1;
 }
 
 .profile {
@@ -939,56 +1040,29 @@ dialog {
 }
 
 @media (max-width: 820px) {
-    :root {
-        --header-h: 168px;
-        --tab-h: 40px;
-        --tab-h-active: 64px;
-    }
-
-    .site-title {
-        top: 14px;
-        padding: 0 16px;
-    }
-
-    body[data-owner] .site-title {
-        top: 30px;
-    }
-
-    .auth-btn {
-        top: 8px;
-        right: 12px;
-        padding: 2px 10px;
-    }
-
     .site-nav {
-        top: 74px;
-        gap: 24px;
-        font-size: var(--sz-sm);
-    }
-
-    body[data-owner="queenie"] .site-nav,
-    body[data-owner="jnmin"] .site-nav {
         display: none;
     }
 
-    .tabs {
-        gap: 6px;
-        left: 6px;
-        right: 6px;
+    .ham-btn {
+        display: block;
     }
 
-    .tab {
-        font-size: var(--sz-sm);
-        border-radius: 24px 24px 0 0;
+    .shelf-entries {
+        grid-template-columns: 1fr;
+    }
+
+    :root {
+        --panel-x: 16px;
     }
 
     .panel {
-        padding: 28px 16px 48px;
+        padding: 28px var(--panel-x) 48px;
         min-height: 560px;
     }
 
     body[data-view="owner"] .panel {
-        padding: 28px 16px 48px;
+        padding: 28px var(--panel-x) 48px;
     }
 
     .site-footer {
@@ -1005,14 +1079,10 @@ dialog {
         height: 210px;
     }
 
-    .owner, body[data-owner="jnmin"] .owner {
+    .owner {
         grid-template-columns: 1fr;
         gap: 28px;
         height: auto;
-    }
-
-    body[data-owner="jnmin"] .masonry {
-        order: 0;
     }
 
     .profile {
@@ -1286,5 +1356,133 @@ dialog {
 @media (prefers-reduced-motion: reduce) {
     * {
         transition: none !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
+
+/* ---------- Loading screen ---------- */
+
+#loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cream);
+    transition: opacity 0.5s ease;
+}
+
+#loader.loader--done {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Bookcase outer frame */
+.loader-case {
+    display: flex;
+    flex-direction: column;
+    width: 320px;
+    padding: 8px 8px 0;
+    background: var(--ink);
+    border: 4px solid var(--ink);
+}
+
+/* Each shelf row */
+.loader-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 58px;
+    padding-bottom: 4px;
+    border-bottom: 6px solid #0a0a0a;
+    overflow: hidden;
+}
+
+.loader-row:last-child {
+    border-bottom: none;
+    padding-bottom: 7px;
+}
+
+/* Books */
+.loader-row span {
+    display: block;
+    border-radius: 1px;
+    background: rgba(253,249,224,0.20);
+    box-shadow: inset -2px 0 6px rgba(0,0,0,0.5);
+    animation: book-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Column flex proportions and heights (consistent across rows) */
+.loader-row span:nth-child(1) { flex: 3;   height: 46px; }
+.loader-row span:nth-child(2) { flex: 2.5; height: 36px; }
+.loader-row span:nth-child(3) { flex: 3.5; height: 52px; }
+.loader-row span:nth-child(4) { flex: 3;   height: 42px; }
+.loader-row span:nth-child(5) { flex: 2;   height: 30px; }
+.loader-row span:nth-child(6) { flex: 3.5; height: 50px; }
+.loader-row span:nth-child(7) { flex: 3;   height: 44px; }
+
+/* Colored books — site palette scattered across shelves */
+.loader-row:nth-child(1) span:nth-child(3) { background: var(--yellow); }
+.loader-row:nth-child(1) span:nth-child(6) { background: var(--pink); }
+.loader-row:nth-child(2) span:nth-child(1) { background: var(--salmon); }
+.loader-row:nth-child(2) span:nth-child(4) { background: var(--note); }
+.loader-row:nth-child(2) span:nth-child(7) { background: var(--yellow); }
+.loader-row:nth-child(3) span:nth-child(2) { background: var(--pink); }
+.loader-row:nth-child(3) span:nth-child(5) { background: var(--salmon); }
+.loader-row:nth-child(4) span:nth-child(3) { background: var(--note); }
+.loader-row:nth-child(4) span:nth-child(6) { background: var(--yellow); }
+
+/* Row 1 delays */
+.loader-row:nth-child(1) span:nth-child(1) { animation-delay: 0.05s; }
+.loader-row:nth-child(1) span:nth-child(2) { animation-delay: 0.13s; }
+.loader-row:nth-child(1) span:nth-child(3) { animation-delay: 0.21s; }
+.loader-row:nth-child(1) span:nth-child(4) { animation-delay: 0.29s; }
+.loader-row:nth-child(1) span:nth-child(5) { animation-delay: 0.37s; }
+.loader-row:nth-child(1) span:nth-child(6) { animation-delay: 0.45s; }
+.loader-row:nth-child(1) span:nth-child(7) { animation-delay: 0.53s; }
+
+/* Row 2 delays */
+.loader-row:nth-child(2) span:nth-child(1) { animation-delay: 0.67s; }
+.loader-row:nth-child(2) span:nth-child(2) { animation-delay: 0.75s; }
+.loader-row:nth-child(2) span:nth-child(3) { animation-delay: 0.83s; }
+.loader-row:nth-child(2) span:nth-child(4) { animation-delay: 0.91s; }
+.loader-row:nth-child(2) span:nth-child(5) { animation-delay: 0.99s; }
+.loader-row:nth-child(2) span:nth-child(6) { animation-delay: 1.07s; }
+.loader-row:nth-child(2) span:nth-child(7) { animation-delay: 1.15s; }
+
+/* Row 3 delays */
+.loader-row:nth-child(3) span:nth-child(1) { animation-delay: 1.29s; }
+.loader-row:nth-child(3) span:nth-child(2) { animation-delay: 1.37s; }
+.loader-row:nth-child(3) span:nth-child(3) { animation-delay: 1.45s; }
+.loader-row:nth-child(3) span:nth-child(4) { animation-delay: 1.53s; }
+.loader-row:nth-child(3) span:nth-child(5) { animation-delay: 1.61s; }
+.loader-row:nth-child(3) span:nth-child(6) { animation-delay: 1.69s; }
+.loader-row:nth-child(3) span:nth-child(7) { animation-delay: 1.77s; }
+
+/* Row 4 delays */
+.loader-row:nth-child(4) span:nth-child(1) { animation-delay: 1.91s; }
+.loader-row:nth-child(4) span:nth-child(2) { animation-delay: 1.99s; }
+.loader-row:nth-child(4) span:nth-child(3) { animation-delay: 2.07s; }
+.loader-row:nth-child(4) span:nth-child(4) { animation-delay: 2.15s; }
+.loader-row:nth-child(4) span:nth-child(5) { animation-delay: 2.23s; }
+.loader-row:nth-child(4) span:nth-child(6) { animation-delay: 2.31s; }
+.loader-row:nth-child(4) span:nth-child(7) { animation-delay: 2.39s; }
+
+@keyframes book-in {
+    from {
+        opacity: 0;
+        transform: translateY(-64px);
+    }
+    20% {
+        opacity: 1;
+    }
+    82% {
+        transform: translateY(3px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

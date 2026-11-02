@@ -180,9 +180,97 @@
   /* 由 offset 算出每張書的 CSS transform（平移 + 縮放） */
   function bookTransform(off) {
     const absOff = Math.abs(off);
-    const scale = [1.0, 0.78, 0.63][Math.min(absOff, 2)];
+    const scale = [1.0, 0.78, 0.63, 0.50][Math.min(absOff, 3)];
     const tx = off * cfStep();
     return `translate(calc(-50% + ${tx}px), -50%) scale(${scale})`;
+  }
+
+  function miniCoverHTML(e) {
+    const url = safeUrl(e.cover);
+    if (url) return `<div class="se-bk" style="background-image:url('${url}')"></div>`;
+    const [a, b] = PALETTES[hash(e.title) % PALETTES.length];
+    return `<div class="se-bk" style="background:linear-gradient(160deg,${a},${b})"></div>`;
+  }
+
+  function animateCardToPage(owner, cardEl) {
+    const rect = cardEl.getBoundingClientRect();
+    const cssVar = owner === 'queenie' ? '--pink' : '--salmon';
+    const bg = getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim() || '#fff';
+
+    const ov = document.createElement('div');
+    ov.style.cssText =
+      'position:fixed;z-index:9999;pointer-events:none;' +
+      `left:${rect.left}px;top:${rect.top}px;` +
+      `width:${rect.width}px;height:${rect.height}px;` +
+      `background:${bg};border-radius:14px;` +
+      'transition:' +
+      'left .44s cubic-bezier(.22,1,.36,1),' +
+      'top .44s cubic-bezier(.22,1,.36,1),' +
+      'width .44s cubic-bezier(.22,1,.36,1),' +
+      'height .44s cubic-bezier(.22,1,.36,1),' +
+      'border-radius .44s cubic-bezier(.22,1,.36,1);';
+    document.body.appendChild(ov);
+
+    ov.getBoundingClientRect(); // force layout
+    requestAnimationFrame(() => {
+      ov.style.left = '0px';
+      ov.style.top = '0px';
+      ov.style.width = '100vw';
+      ov.style.height = '100vh';
+      ov.style.borderRadius = '0';
+    });
+
+    setTimeout(() => {
+      app.style.opacity = '0';
+      go('#/' + owner);
+      requestAnimationFrame(() => {
+        app.style.transition = 'opacity 0.38s ease';
+        app.style.opacity = '1';
+        setTimeout(() => { app.style.transition = ''; }, 400);
+      });
+      ov.style.transition = 'opacity 0.35s ease';
+      ov.style.opacity = '0';
+      setTimeout(() => ov.remove(), 360);
+    }, 430);
+  }
+
+  function shelfEntryCardHTML(owner) {
+    const p = PEOPLE[owner];
+    const mine = byDateDesc(entries.filter(e => e.owner === owner));
+    const bookCount = mine.filter(e => e.type === 'book').length;
+    const movieCount = mine.filter(e => e.type === 'movie').length;
+    const recent = mine[0];
+    if (!mine.length) {
+      return `<a class="shelf-entry se-${owner}" href="#/${owner}">
+        <div class="se-head">
+          <div class="se-name">${esc(p.name)}'s shelf</div>
+          <div class="se-stat">尚無紀錄</div>
+        </div>
+        <div class="se-scroll"><p class="empty" style="margin:auto;padding:24px 0">尚無紀錄</p></div>
+        <div class="se-foot"><span class="se-enter">進入 →</span></div>
+      </a>`;
+    }
+    let pool = mine.slice(0, 12);
+    while (pool.length < 3) pool = [...pool, ...pool];
+    const rot = (arr, n) => { const s = n % arr.length; return [...arr.slice(s), ...arr.slice(0, s)]; };
+    const step = Math.max(1, Math.floor(pool.length / 3));
+    const makeCol = (items) => [...items, ...items].map(e => miniCoverHTML(e)).join('');
+    const recentStr = recent ? `最近：${esc(recent.title)}` : '';
+    return `<a class="shelf-entry se-${owner}" href="#/${owner}">
+      <div class="se-head">
+        <div class="se-name">${esc(p.name)}'s shelf</div>
+        <div class="se-stat">${bookCount} 本書 · ${movieCount} 部電影</div>
+      </div>
+      <div class="se-scroll">
+        <div class="se-col">${makeCol(rot(pool, 0))}</div>
+        <div class="se-col">${makeCol(rot(pool, step))}</div>
+        <div class="se-col">${makeCol(rot(pool, step * 2))}</div>
+      </div>
+      <div class="se-foot">
+        <span class="se-recent">${recentStr}</span>
+        <span class="se-enter">進入 →</span>
+      </div>
+    </a>`;
   }
 
   function renderHome() {
@@ -196,8 +284,10 @@
     }
     if (homeIndex === null || homeIndex >= homeList.length) homeIndex = Math.floor(homeList.length / 2);
 
+    const shelfEntriesHTML = Object.keys(PEOPLE).map(shelfEntryCardHTML).join('');
     app.innerHTML = `
       <section class="home" aria-label="書架">
+        <h1 class="home-hero">Our Shelves</h1>
         <div class="shelf">
           ${homeList.map((e, i) => `<button class="book" type="button" data-i="${i}">${coverHTML(e)}</button>`).join('')}
         </div>
@@ -207,6 +297,7 @@
           <button class="arrow" type="button" data-nav="1" aria-label="下一本">›</button>
         </div>
         <div class="danmaku" aria-hidden="true"></div>
+        <div class="shelf-entries">${shelfEntriesHTML}</div>
       </section>`;
     /* 初始定位不跑動畫，待下一幀才開啟 transition */
     app.querySelectorAll('.book').forEach(b => { b.style.transition = 'none'; });
@@ -279,11 +370,11 @@
       const absOff = Math.abs(off);
       b.dataset.offset = off;
       b.style.transform = bookTransform(off);
-      b.style.opacity = absOff > 2 ? 0 : 1;
+      b.style.opacity = absOff > 3 ? 0 : absOff === 3 ? 0.65 : 1;
       b.style.zIndex  = 10 - absOff;
-      b.style.pointerEvents = absOff > 2 ? 'none' : 'auto';
-      b.tabIndex = absOff <= 2 ? 0 : -1;
-      b.setAttribute('aria-hidden', absOff <= 2 ? 'false' : 'true');
+      b.style.pointerEvents = absOff > 3 ? 'none' : 'auto';
+      b.tabIndex = absOff <= 3 ? 0 : -1;
+      b.setAttribute('aria-hidden', absOff <= 3 ? 'false' : 'true');
       b.setAttribute('aria-label', off === 0
         ? `開啟「${e.title}」的心得（${PEOPLE[e.owner]?.name || e.owner} · ${typeLabel(e.type)} · ${e.rating} 顆星）`
         : `切換到「${e.title}」`);
@@ -942,6 +1033,16 @@
    * 事件
    * ------------------------------------------------------------------ */
   app.addEventListener('click', (ev) => {
+    const card = ev.target.closest('.shelf-entry');
+    if (card && app.contains(card)) {
+      ev.preventDefault();
+      const href = card.getAttribute('href') || '';
+      const owner = href.replace('#/', '');
+      if (PEOPLE[owner]) animateCardToPage(owner, card);
+      else if (href) go(href);
+      return;
+    }
+
     const t = ev.target.closest('[data-add],[data-import],[data-filter],[data-edit],[data-delete],[data-nav],[data-autoplay],.book');
     if (!t || !app.contains(t)) return;
 
@@ -989,6 +1090,24 @@
     startAuto();
   });
 
+  const hamBtn = document.querySelector('.ham-btn');
+  const mobNav = document.getElementById('mob-nav');
+  if (hamBtn && mobNav) {
+    hamBtn.addEventListener('click', () => {
+      const open = mobNav.hidden;
+      mobNav.hidden = !open;
+      hamBtn.setAttribute('aria-expanded', String(open));
+      hamBtn.textContent = open ? '✕' : '☰';
+    });
+    mobNav.addEventListener('click', (ev) => {
+      if (ev.target.matches('a')) {
+        mobNav.hidden = true;
+        hamBtn.setAttribute('aria-expanded', 'false');
+        hamBtn.textContent = '☰';
+      }
+    });
+  }
+
   window.addEventListener('hashchange', route);
 
   let resizeTimer = null;
@@ -1003,7 +1122,6 @@
           app.querySelectorAll('.book').forEach(b => { b.style.transition = ''; });
         }));
       }
-      try { positionTitle(true); } catch (e) {}
     }, 200);
   });
 
@@ -1011,6 +1129,12 @@
   updateAuthButton();
   route();
   refresh();
-  try { positionTitle(true); } catch (e) {}
-  if (document.fonts) document.fonts.ready.then(function() { try { positionTitle(true); } catch(e) {} });
+
+  const loaderEl = document.getElementById('loader');
+  if (loaderEl) {
+    setTimeout(() => {
+      loaderEl.classList.add('loader--done');
+      loaderEl.addEventListener('transitionend', () => loaderEl.remove(), { once: true });
+    }, 2900);
+  }
 })();
