@@ -164,6 +164,31 @@
         </div>
     </div>
 
+    <dialog id="add-owner-dialog" aria-labelledby="add-owner-title">
+        <form id="add-owner-form" method="dialog">
+            <h2 id="add-owner-title">新增書架主人</h2>
+            <div class="form-grid">
+                <label class="full">
+                    網址 ID（只能用英文小寫、數字、連字號）
+                    <input name="owner_id" required maxlength="40" pattern="[a-z0-9\-]+" placeholder="例：alice" autocomplete="off">
+                </label>
+                <label class="full">
+                    顯示名稱
+                    <input name="name" required maxlength="40" autocomplete="off">
+                </label>
+                <label class="full">
+                    簡介（選填）
+                    <textarea name="bio" rows="3"></textarea>
+                </label>
+            </div>
+            <p class="dialog-note" id="add-owner-status" role="status"></p>
+            <div class="dialog-actions">
+                <button type="button" class="btn btn--ghost" data-cancel>取消</button>
+                <button type="submit" class="btn">新增</button>
+            </div>
+        </form>
+    </dialog>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
     <script src="script.js"></script>
 </body>

@@ -4,7 +4,7 @@
   /* ------------------------------------------------------------------
    * 設定：兩位書架主人。改這裡就能換名字與簡介。
    * ------------------------------------------------------------------ */
-  const PEOPLE = {
+  let PEOPLE = {
     queenie: { name: 'queenie', bio: '買了超多書，但很多其實都只看了一半。' },
     jnmin:   { name: 'Jnmin',   bio: '雞米花、雞蛋花' }
   };
@@ -45,14 +45,23 @@
   }
 
   let entries = readCache();
+  let currentReadings = {};
   let loadState = entries.length ? 'ready' : 'loading';  // loading | ready | error
 
   async function refresh() {
     try {
       if (!sb) throw new Error('supabase-js 沒有載入');
-      const { data, error } = await sb.from('entries').select('*').order('date', { ascending: false });
-      if (error) throw error;
-      const fresh = data.map(fromRow);
+      const [entriesRes, crRes, ownersRes] = await Promise.all([
+        sb.from('entries').select('*').order('date', { ascending: false }),
+        sb.from('current_reading').select('*'),
+        sb.from('owners').select('owner, name, bio').order('owner')
+      ]);
+      if (entriesRes.error) throw entriesRes.error;
+      if (crRes.data) { currentReadings = {}; crRes.data.forEach(r => { currentReadings[r.owner] = r; }); }
+      if (ownersRes.data && ownersRes.data.length) {
+        ownersRes.data.forEach(r => { if (r.owner && r.name) PEOPLE[r.owner] = { name: r.name, bio: r.bio || '' }; });
+      }
+      const fresh = entriesRes.data.map(fromRow);
       const changed = loadState !== 'ready' || JSON.stringify(fresh) !== JSON.stringify(entries);
       entries = fresh;
       loadState = 'ready';
@@ -284,7 +293,8 @@
     }
     if (homeIndex === null || homeIndex >= homeList.length) homeIndex = Math.floor(homeList.length / 2);
 
-    const shelfEntriesHTML = Object.keys(PEOPLE).map(shelfEntryCardHTML).join('');
+    const shelfEntriesHTML = Object.keys(PEOPLE).map(shelfEntryCardHTML).join('')
+      + `<button class="shelf-entry shelf-entry--add" type="button" data-add-owner aria-label="新增書架主人">＋ 新增書架</button>`;
     app.innerHTML = `
       <section class="home" aria-label="書架">
         <div class="home-hero-wrap">
@@ -396,6 +406,53 @@ function startDanmaku() {
   /* ------------------------------------------------------------------
    * 個人頁：簡介 + 錯落的書封牆
    * ------------------------------------------------------------------ */
+
+  function crBlockHTML(owner) {
+    const cr = currentReadings[owner];
+    if (!cr && !canEdit()) return '';
+    if (!cr) {
+      return `<div class="cr-block" data-cr-owner="${owner}">
+        <button class="cr-add-btn" type="button" data-cr-edit>＋ 加入正在閱讀的書</button>
+      </div>`;
+    }
+    const imgUrl = safeUrl(cr.cover || '');
+    const hasProgress = cr.page && cr.total_pages;
+    const pct = hasProgress ? Math.min(100, Math.round(cr.page / cr.total_pages * 100)) : 0;
+    return `<div class="cr-block" data-cr-owner="${owner}">
+      <p class="eyebrow cr-eyebrow">正在閱讀</p>
+      <div class="cr-card">
+        <div class="cr-cover"${imgUrl ? ` style="background-image:url('${imgUrl}')"` : ''}></div>
+        <div class="cr-info">
+          <p class="cr-title">${esc(cr.title)}</p>
+          ${cr.creator ? `<p class="cr-creator">${esc(cr.creator)}</p>` : ''}
+          ${hasProgress ? `<p class="cr-progress">第 ${cr.page} 頁 ／ ${cr.total_pages} 頁</p>
+          <div class="cr-bar"><div class="cr-bar__fill" style="width:${pct}%"></div></div>` : ''}
+        </div>
+      </div>
+      ${canEdit() ? `<button class="cr-edit-btn" type="button" data-cr-edit>✏ 更改</button>` : ''}
+    </div>`;
+  }
+
+  function crEditHTML(owner) {
+    const cr = currentReadings[owner] || {};
+    return `<p class="eyebrow cr-eyebrow">正在閱讀</p>
+      <form class="cr-form" data-cr-form="${owner}">
+        <input class="cr-input" name="title" placeholder="書名" value="${esc(cr.title || '')}" required>
+        <input class="cr-input" name="creator" placeholder="作者（選填）" value="${esc(cr.creator || '')}">
+        <input class="cr-input" name="cover" type="url" placeholder="封面圖片網址（選填）" value="${esc(cr.cover || '')}">
+        <div class="cr-pages">
+          <input class="cr-input cr-input--num" name="page" type="number" min="1" placeholder="目前頁" value="${cr.page || ''}">
+          <span class="cr-pages-sep">／</span>
+          <input class="cr-input cr-input--num" name="total_pages" type="number" min="1" placeholder="共幾頁" value="${cr.total_pages || ''}">
+        </div>
+        <div class="cr-actions">
+          ${cr.title ? `<button type="button" class="btn btn--ghost btn--sm" data-cr-delete="${owner}">移除</button>` : ''}
+          <button type="button" class="btn btn--ghost btn--sm" data-cr-cancel="${owner}">取消</button>
+          <button type="submit" class="btn btn--sm">儲存</button>
+        </div>
+      </form>`;
+  }
+
   function cardHTML(e) {
     const ym = (e.date || '').slice(0, 7);
     const label = `${e.title} · ${stars(e.rating)}${ym ? ' · ' + ym : ''}`;
@@ -436,6 +493,7 @@ function startDanmaku() {
           <p class="eyebrow">Shelf of</p>
           <h2>${esc(p.name)}</h2>
           <p class="bio">${esc(p.bio)}</p>
+          ${crBlockHTML(id)}
           <dl class="stats">
             <div><dt>讀過的書</dt><dd>${books}</dd></div>
             <div><dt>看過的電影</dt><dd>${movies}</dd></div>
@@ -667,8 +725,8 @@ function startDanmaku() {
       <section class="page">
         <p class="eyebrow">About us</p>
         <h2>Our Shelves</h2>
-        <p>這是 ${esc(PEOPLE.queenie.name)} 和 ${esc(PEOPLE.jnmin.name)} 的書架，收著我們讀過的書、看過的電影，和看完之後留下的一點心得。</p>
-        <p><a href="#/queenie">${esc(PEOPLE.queenie.name)}'s page</a> · <a href="#/jnmin">${esc(PEOPLE.jnmin.name)}'s page</a></p>
+        <p>這是我們的書架，收著我們讀過的書、看過的電影，和看完之後留下的一點心得。</p>
+        <p>${Object.keys(PEOPLE).map(k => `<a href="#/${k}">${esc(PEOPLE[k].name)}'s page</a>`).join(' · ')}</p>
       </section>`;
   }
 
@@ -935,12 +993,46 @@ function startDanmaku() {
   accountForm.querySelector('[data-cancel]').addEventListener('click', () => accountDialog.close());
 
   /* ------------------------------------------------------------------
+   * 新增書架主人
+   * ------------------------------------------------------------------ */
+  const addOwnerDialog = $('#add-owner-dialog');
+  const addOwnerForm = $('#add-owner-form');
+  const addOwnerStatus = $('#add-owner-status');
+
+  function openAddOwnerDialog() {
+    addOwnerForm.reset();
+    addOwnerStatus.textContent = '';
+    addOwnerDialog.showModal();
+    addOwnerForm.elements.owner_id.focus();
+  }
+
+  addOwnerForm.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const owner_id = addOwnerForm.elements.owner_id.value.trim().toLowerCase();
+    const name = addOwnerForm.elements.name.value.trim();
+    const bio = addOwnerForm.elements.bio.value.trim();
+    if (!owner_id || !name) return;
+    if (PEOPLE[owner_id]) { addOwnerStatus.textContent = '這個 ID 已經存在。'; return; }
+    addOwnerStatus.textContent = '儲存中…';
+    const { error } = await sb.from('owners').insert({ owner: owner_id, name, bio });
+    if (error) { addOwnerStatus.textContent = '新增失敗：' + error.message; return; }
+    PEOPLE[owner_id] = { name, bio };
+    addOwnerDialog.close();
+    route();
+  });
+
+  addOwnerDialog.querySelector('[data-cancel]').addEventListener('click', () => addOwnerDialog.close());
+
+  /* ------------------------------------------------------------------
    * 新增／編輯／刪除：只有登入的主人能改，資料庫也會再檢查一次
    * ------------------------------------------------------------------ */
   function openDialog(entry, ownerDefault) {
     form.reset();
     editingId = entry ? entry.id : null;
     $('#dialog-title').textContent = entry ? '編輯紀錄' : '新增一筆';
+    const ownerSel = form.elements.owner;
+    if (ownerSel) ownerSel.innerHTML = Object.keys(PEOPLE).map(k =>
+      `<option value="${esc(k)}">${esc(PEOPLE[k].name)}</option>`).join('');
     const d = entry || {
       owner: ownerDefault || me, type: 'book', title: '', creator: '',
       date: todayStr(), rating: 4, cover: '', review: '', quote: '', genre: ''
@@ -1055,7 +1147,7 @@ function startDanmaku() {
       return;
     }
 
-    const t = ev.target.closest('[data-add],[data-import],[data-filter],[data-edit],[data-delete],.book');
+    const t = ev.target.closest('[data-add],[data-import],[data-filter],[data-edit],[data-delete],[data-cr-edit],[data-cr-cancel],[data-cr-delete],[data-add-owner],.book');
     if (!t || !app.contains(t)) return;
 
     if (t.matches('.book')) {
@@ -1073,10 +1165,47 @@ function startDanmaku() {
       openDialog(entries.find(e => e.id === t.dataset.edit));
     } else if (t.dataset.delete) {
       removeEntry(t.dataset.delete);
+    } else if (t.hasAttribute('data-add-owner')) {
+      if (canEdit()) openAddOwnerDialog(); else authBtn.click();
+    } else if (t.hasAttribute('data-cr-edit')) {
+      const block = t.closest('[data-cr-owner]');
+      if (block) block.innerHTML = crEditHTML(block.dataset.crOwner);
+    } else if (t.dataset.crCancel) {
+      const owner = t.dataset.crCancel;
+      const block = app.querySelector(`[data-cr-owner="${owner}"]`);
+      if (block) block.outerHTML = crBlockHTML(owner);
+    } else if (t.dataset.crDelete) {
+      const owner = t.dataset.crDelete;
+      if (confirm('確定移除正在閱讀的書？')) {
+        sb.from('current_reading').delete().eq('owner', owner).then(({ error }) => {
+          if (error) { alert('移除失敗：' + error.message); return; }
+          delete currentReadings[owner];
+          const block = app.querySelector(`[data-cr-owner="${owner}"]`);
+          if (block) block.outerHTML = crBlockHTML(owner);
+        });
+      }
     }
   });
 
   app.addEventListener('submit', (ev) => {
+    const crForm = ev.target.closest('[data-cr-form]');
+    if (crForm) {
+      ev.preventDefault();
+      const owner = crForm.dataset.crForm;
+      const d = Object.fromEntries(new FormData(crForm).entries());
+      const row = { owner, title: d.title, creator: d.creator || '', cover: d.cover || '' };
+      if (d.page) row.page = Number(d.page);
+      if (d.total_pages) row.total_pages = Number(d.total_pages);
+      row.updated_at = new Date().toISOString();
+      sb.from('current_reading').upsert(row, { onConflict: 'owner' }).then(({ error }) => {
+        if (error) { alert('儲存失敗：' + error.message); return; }
+        currentReadings[owner] = row;
+        const block = app.querySelector(`[data-cr-owner="${owner}"]`);
+        if (block) block.outerHTML = crBlockHTML(owner);
+      });
+      return;
+    }
+
     const f = ev.target.closest('[data-comment-form]');
     if (!f) return;
     ev.preventDefault();
