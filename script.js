@@ -287,27 +287,46 @@
     const shelfEntriesHTML = Object.keys(PEOPLE).map(shelfEntryCardHTML).join('');
     app.innerHTML = `
       <section class="home" aria-label="書架">
-        <h1 class="home-hero">Our Shelves</h1>
-        <div class="shelf">
-          ${homeList.map((e, i) => `<button class="book" type="button" data-i="${i}">${coverHTML(e)}</button>`).join('')}
+        <div class="home-hero-wrap">
+          <h1 class="home-hero">Our Shelves</h1>
+          <div class="shelf">
+            ${homeList.map((e, i) => `<button class="book" type="button" data-i="${i}">${coverHTML(e)}</button>`).join('')}
+          </div>
+          <div class="scroll-hint" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          </div>
         </div>
-        <div class="shelf-controls">
-          <button class="arrow" type="button" data-nav="-1" aria-label="上一本">‹</button>
-          <button class="autoplay" type="button" data-autoplay></button>
-          <button class="arrow" type="button" data-nav="1" aria-label="下一本">›</button>
+        <div class="shelf-section">
+          <div class="sg-bg">
+            <div class="sg-blob sg-b1"></div>
+            <div class="sg-blob sg-b2"></div>
+            <div class="sg-blob sg-b3"></div>
+          </div>
+          <div class="danmaku" aria-hidden="true"></div>
+          <div class="ss-inner">
+            <p class="ss-label">選一個書架</p>
+            <div class="shelf-entries">${shelfEntriesHTML}</div>
+          </div>
         </div>
-        <div class="danmaku" aria-hidden="true"></div>
-        <div class="shelf-entries">${shelfEntriesHTML}</div>
       </section>`;
     /* 初始定位不跑動畫，待下一幀才開啟 transition */
     app.querySelectorAll('.book').forEach(b => { b.style.transition = 'none'; });
     setHome(homeIndex);
-    updateAutoplayButton();
     requestAnimationFrame(() => requestAnimationFrame(() => {
       app.querySelectorAll('.book').forEach(b => { b.style.transition = ''; });
       startAuto();
       startDanmaku();
     }));
+
+    /* Shelf section: entry reveal */
+    const ssInner = app.querySelector('.ss-inner');
+    if (ssInner) {
+      const io = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting) { entry.target.classList.add('ss-visible'); io.disconnect(); }
+      }, { threshold: 0.1 });
+      io.observe(ssInner);
+    }
+    requestAnimationFrame(tickParallax);
   }
 
   /* 自動輪播：滑鼠停在書架上、用鍵盤操作、開著對話框或切到別的分頁時暫停 */
@@ -333,19 +352,12 @@
     }, CF_FIRST_DELAY);
   }
 
-  function updateAutoplayButton() {
-    const btn = app.querySelector('[data-autoplay]');
-    if (!btn) return;
-    btn.textContent = autoPaused ? '▶ 自動輪播' : '❚❚ 暫停輪播';
-    btn.setAttribute('aria-pressed', String(!autoPaused));
-  }
-
-  function startDanmaku() {
+function startDanmaku() {
     const danmaku = app.querySelector(".danmaku");
     if (!danmaku) return;
     const quotes = entries.filter(e => e.quote && e.quote.trim());
     if (!quotes.length) { danmaku.hidden = true; return; }
-    const pool = [...quotes].sort(() => Math.random() - 0.5).slice(0, 6);
+    const pool = [...quotes].sort(() => Math.random() - 0.5).slice(0, Math.min(quotes.length, 12));
     const h = danmaku.offsetHeight;
     const lineH = 22;
     pool.forEach(q => {
@@ -1043,20 +1055,13 @@
       return;
     }
 
-    const t = ev.target.closest('[data-add],[data-import],[data-filter],[data-edit],[data-delete],[data-nav],[data-autoplay],.book');
+    const t = ev.target.closest('[data-add],[data-import],[data-filter],[data-edit],[data-delete],.book');
     if (!t || !app.contains(t)) return;
 
     if (t.matches('.book')) {
       const i = Number(t.dataset.i);
       if (i === homeIndex) go('#/entry/' + encodeURIComponent(homeList[i].id));
       else { setHome(i); startAuto(); }
-    } else if (t.dataset.nav) {
-      setHome(homeIndex + Number(t.dataset.nav));
-      startAuto();
-    } else if (t.hasAttribute('data-autoplay')) {
-      autoPaused = !autoPaused;
-      updateAutoplayButton();
-      startAuto();
     } else if (t.dataset.filter) {
       filter = t.dataset.filter;
       renderOwner(currentOwner);
@@ -1108,6 +1113,35 @@
     });
   }
 
+  /* Parallax: three speed layers — blobs (far) > danmaku (mid) > cards (near) */
+  let parallaxRAF = null;
+  function tickParallax() {
+    parallaxRAF = null;
+    const bg = document.querySelector('.sg-bg');
+    if (!bg) return;
+    const section = bg.closest('.shelf-section');
+    const rect = section.getBoundingClientRect();
+    const vh = window.innerHeight;
+    if (rect.bottom < -vh || rect.top > vh * 2) return;
+
+    const dist = (vh / 2) - (rect.top + rect.height / 2);
+    bg.style.transform = `translateY(${(dist * 0.42).toFixed(1)}px)`;
+    const dm = section.querySelector('.danmaku');
+    if (dm) dm.style.transform = `translateY(${(dist * 0.15).toFixed(1)}px)`;
+
+    /* Hero wrap: scale + fade as rising card covers it */
+    const hero = document.querySelector('.home-hero-wrap');
+    if (hero) {
+      const heroRect = hero.getBoundingClientRect();
+      const coverPct = Math.max(0, Math.min(1, (heroRect.bottom - rect.top) / heroRect.height));
+      hero.style.transform = `scale(${(1 - coverPct * 0.05).toFixed(4)})`;
+      hero.style.opacity = (1 - coverPct * 0.35).toFixed(3);
+    }
+  }
+  window.addEventListener('scroll', () => {
+    if (!parallaxRAF) parallaxRAF = requestAnimationFrame(tickParallax);
+  }, { passive: true });
+
   window.addEventListener('hashchange', route);
 
   let resizeTimer = null;
@@ -1120,6 +1154,7 @@
         setHome(homeIndex);
         requestAnimationFrame(() => requestAnimationFrame(() => {
           app.querySelectorAll('.book').forEach(b => { b.style.transition = ''; });
+          requestAnimationFrame(tickParallax);
         }));
       }
     }, 200);
