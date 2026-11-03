@@ -1758,7 +1758,9 @@ dialog {
 
 .donate-page {
     max-width: 640px;
+    margin-inline: auto;
     padding-top: 28px;
+    text-align: center;
 }
 
 .donate-lead {
@@ -1815,70 +1817,19 @@ dialog {
     margin-top: 4px;
 }
 
-.wishlist {
-    border-top: 1px solid var(--line);
-    padding-top: 40px;
-}
-
-.wishlist-subtitle {
-    font-size: var(--sz-md);
-    font-weight: 400;
-    margin: 0 0 24px;
-}
-
-.wish-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 14px;
-    margin-bottom: 28px;
-}
-
-.wish-card {
-    padding: 20px;
-    background: var(--field);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.wish-icon { font-size: 28px; line-height: 1; }
-
-.wish-name {
-    font-size: var(--sz-sm);
-    font-weight: 700;
-    margin: 0;
-    color: var(--ink);
-}
-
-.wish-note {
-    font-size: var(--sz-sm);
-    color: var(--muted);
-    line-height: 1.55;
-    margin: 0;
-    flex: 1;
-}
-
-.wish-price {
-    font-size: var(--sz-sm);
-    font-weight: 500;
-    font-family: var(--sans);
-    margin: 4px 0 0;
-    color: var(--ink);
-}
-
-.donate-note {
-    font-size: var(--sz-sm);
-    color: var(--muted);
-    margin: 0;
-}
 
 /* ── Recommendations page ───────────────────────────────── */
 
 .recs-page {
-    max-width: 640px;
+    display: grid;
+    grid-template-columns: minmax(280px, 400px) minmax(0, 1fr);
+    gap: 56px;
     padding-top: 28px;
+    align-items: start;
+}
+
+@media (max-width: 700px) {
+    .recs-page { grid-template-columns: 1fr; gap: 32px; }
 }
 
 .recs-lead {
@@ -1895,7 +1846,6 @@ dialog {
     background: var(--field);
     border: 1px solid var(--line);
     border-radius: 14px;
-    margin-bottom: 36px;
 }
 
 .rec-input {

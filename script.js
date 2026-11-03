@@ -775,29 +775,27 @@ function startDanmaku() {
     document.title = '推薦書 · Our Shelves';
     app.innerHTML = `
       <section class="recs-page">
-        <p class="eyebrow">大家的推薦</p>
-        <h2>推薦一本書</h2>
-        <p class="recs-lead">不用登入，任何人都可以推薦一本喜歡的書，留下幾句心得。</p>
-        <form class="rec-form" data-rec-form>
-          <input class="rec-input" name="title" placeholder="書名" maxlength="80" required autocomplete="off">
-          <input class="rec-input" name="creator" placeholder="作者（選填）" maxlength="60" autocomplete="off">
-          <textarea class="rec-input" name="review" placeholder="推薦的理由或心得" maxlength="400" rows="4" required></textarea>
-          <div class="rec-form-foot">
-            <input class="rec-input rec-input--name" name="nickname" placeholder="你的名字" maxlength="30" required autocomplete="off">
-            <button class="btn" type="submit">送出推薦</button>
-          </div>
-        </form>
-        <div class="rec-list"><p class="empty">載入中⋯</p></div>
+        <div class="recs-left">
+          <p class="eyebrow">大家的推薦</p>
+          <h2>推薦一本書</h2>
+          <p class="recs-lead">不用登入，任何人都可以推薦一本喜歡的書，留下幾句心得。</p>
+          <form class="rec-form" data-rec-form>
+            <input class="rec-input" name="title" placeholder="書名" maxlength="80" required autocomplete="off">
+            <input class="rec-input" name="creator" placeholder="作者（選填）" maxlength="60" autocomplete="off">
+            <textarea class="rec-input" name="review" placeholder="推薦的理由或心得" maxlength="400" rows="4" required></textarea>
+            <div class="rec-form-foot">
+              <input class="rec-input rec-input--name" name="nickname" placeholder="你的名字" maxlength="30" required autocomplete="off">
+              <button class="btn" type="submit">送出推薦</button>
+            </div>
+          </form>
+        </div>
+        <div class="recs-right">
+          <div class="rec-list"><p class="empty">載入中⋯</p></div>
+        </div>
       </section>`;
     loadRecsSection();
   }
 
-  const WISHES = [
-    { icon: '📖', name: '下一本想買的書',     note: '書單已排到明年，但口袋沒那麼深', price: 350 },
-    { icon: '🎬', name: '電影院票（兩張）',   note: '票越來越貴，但大螢幕就是不一樣',   price: 560 },
-    { icon: '🧋', name: '寫心得用的珍奶',     note: '沒有珍奶大腦無法運作，這是科學',   price: 75  },
-    { icon: '📚', name: '二手書攤的驚喜',     note: '每次去都忍不住想把整攤搬回家',     price: 150 },
-  ];
 
   function donateClick(sourceEl) {
     const numEl = document.getElementById('donate-num');
@@ -845,20 +843,6 @@ function startDanmaku() {
           <button class="btn donate-click-btn" type="button">投一個心意 ♡</button>
         </div>
 
-        <div class="wishlist">
-          <p class="eyebrow">願望清單</p>
-          <p class="wishlist-subtitle">你的贊助可以讓我們買⋯</p>
-          <div class="wish-grid">
-            ${WISHES.map(w => `
-              <div class="wish-card">
-                <span class="wish-icon">${w.icon}</span>
-                <p class="wish-name">${esc(w.name)}</p>
-                <p class="wish-note">${esc(w.note)}</p>
-                <p class="wish-price">NT$&nbsp;${w.price}</p>
-              </div>`).join('')}
-          </div>
-          <p class="donate-note">贊助方式準備中，敬請期待。</p>
-        </div>
       </section>`;
 
     app.querySelector('.donate-click-btn').addEventListener('click', function () { donateClick(this); });
