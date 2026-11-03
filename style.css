@@ -14,7 +14,7 @@
     --header-h: 64px;
     --panel-x: clamp(20px, 5vw, 72px);
     --accent: var(--yellow);
-    --sz-lg: clamp(44px, 6.5vw, 88px);
+    --sz-lg: clamp(52px, 7.5vw, 80px);
     --sz-md: 22px;
     --sz-sm: 14px;
 }
@@ -29,6 +29,10 @@ body[data-owner="jnmin"] {
 
 * {
     box-sizing: border-box;
+}
+
+button, input, select, textarea, optgroup {
+    font: inherit;
 }
 
 html {
@@ -95,7 +99,7 @@ a {
     flex: 1;
     justify-content: center;
     font-family: var(--sans);
-    font-size: clamp(var(--sz-sm), 1.1vw, var(--sz-sm));
+    font-size: var(--sz-sm);
     font-weight: 500;
 }
 
@@ -299,6 +303,7 @@ a {
 }
 
 .cover__by {
+    font-family: var(--sans);
     font-size: var(--sz-sm);
     color: var(--muted);
 }
@@ -354,7 +359,7 @@ body[data-view="home"] .panel {
 }
 
 .home-hero {
-    font-size: clamp(52px, 7.5vw, 80px);
+    font-size: var(--sz-lg);
     font-weight: 400;
     text-align: center;
     line-height: 1.05;
@@ -421,7 +426,7 @@ body[data-view="home"] .panel {
     white-space: nowrap;
     font-family: var(--serif);
     font-style: italic;
-    font-size: clamp(var(--sz-sm), 1.15vw, var(--sz-sm));
+    font-size: var(--sz-sm);
     color: var(--ink);
     opacity: 0.28;
     letter-spacing: 0.02em;
@@ -702,7 +707,7 @@ body[data-view="home"] .panel {
     justify-content: center;
     border: 2px solid rgba(255, 255, 255, 0.7);
     border-radius: 50%;
-    font-size: 26px;
+    font-size: var(--sz-md);
     line-height: 1;
     color: rgba(255, 255, 255, 0.85);
     transition: border-color 0.2s ease, color 0.2s ease;
@@ -1012,7 +1017,7 @@ body[data-view="owner"] .panel {
 }
 
 .card__title {
-    font-family: var(--sans);
+    font-family: var(--serif);
     font-size: var(--sz-sm);
     font-weight: 700;
     color: #fff;
