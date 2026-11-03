@@ -294,7 +294,7 @@
     if (homeIndex === null || homeIndex >= homeList.length) homeIndex = 0;
 
     const shelfEntriesHTML = Object.keys(PEOPLE).map(shelfEntryCardHTML).join('')
-      + `<button class="shelf-entry shelf-entry--add" type="button" data-add-owner aria-label="新增書架主人">＋ 新增書架</button>`;
+      + `<button class="shelf-entry shelf-entry--add" type="button" data-add-owner aria-label="新增書架主人"><span class="add-owner-icon" aria-hidden="true">＋</span><span class="add-owner-label">新增書架</span></button>`;
     app.innerHTML = `
       <section class="home" aria-label="書架">
         <div class="home-hero-wrap">
@@ -455,9 +455,16 @@ function startDanmaku() {
 
   function cardHTML(e) {
     const ym = (e.date || '').slice(0, 7);
+    const dateStr = ym ? ym.replace('-', '/') : '';
     const label = `${e.title} · ${stars(e.rating)}${ym ? ' · ' + ym : ''}`;
-    return `<a class="card" href="#/entry/${encodeURIComponent(e.id)}" title="${esc(label)}" aria-label="${esc(label)}">
-      ${coverHTML(e)}
+    const hasImg = !!safeUrl(e.cover);
+    return `<a class="card${hasImg ? ' card--img' : ''}" href="#/entry/${encodeURIComponent(e.id)}" aria-label="${esc(label)}">
+      ${coverHTML(e)}${hasImg ? `<div class="card__info" aria-hidden="true">
+        ${e.type === 'movie' ? '<span class="card__type">FILM</span>' : ''}
+        <p class="card__title">${esc(e.title)}</p>
+        ${e.creator ? `<p class="card__creator">${esc(e.creator)}</p>` : ''}
+        ${dateStr ? `<p class="card__date">${dateStr}</p>` : ''}
+      </div>` : ''}
     </a>`;
   }
 
@@ -476,13 +483,9 @@ function startDanmaku() {
     const movies = mine.length - books;
     const shown = mine.filter(e => filter === 'all' || e.type === filter);
     const legacy = canEdit(id) ? legacyEntries() : [];
-    const cols = [[], []];
-    if (filter === 'all') {
-      shown.forEach((e, i) => cols[i % 2].push(cardHTML(e)));
-    } else {
-      const half = Math.ceil(shown.length / 2);
-      shown.forEach((e, i) => cols[i < half ? 0 : 1].push(cardHTML(e)));
-    }
+    const numCols = window.innerWidth > 820 ? 3 : 2;
+    const cols = Array.from({ length: numCols }, () => []);
+    shown.forEach((e, i) => cols[i % numCols].push(cardHTML(e)));
 
     const chip = (key, label) =>
       `<button class="chip" type="button" data-filter="${key}" aria-pressed="${filter === key}">${label}</button>`;
@@ -605,7 +608,7 @@ function startDanmaku() {
           col.appendChild(c);
         });
       }
-      return { col, period, phase: i === 0 ? -stagger : 0 };
+      return { col, period, phase: (i - Math.floor(activeCols.length / 2)) * stagger };
     });
 
     let pos = 0;
@@ -963,17 +966,29 @@ function startDanmaku() {
       const ym = e.date.slice(0, 7);
       counts[ym] = (counts[ym] || 0) + 1;
     });
-    const months = Object.keys(counts).sort().slice(-12);
-    if (!months.length) return "";
-    const maxC = Math.max(...months.map(m => counts[m]));
+    const recorded = Object.keys(counts).sort();
+    if (!recorded.length) return "";
+    // Fill every month from first to last so gaps show as 0
+    const months = [];
+    let [y, mo] = recorded[0].split('-').map(Number);
+    const [endY, endMo] = recorded[recorded.length - 1].split('-').map(Number);
+    while (y < endY || (y === endY && mo <= endMo)) {
+      months.push(`${y}-${String(mo).padStart(2, '0')}`);
+      if (++mo > 12) { mo = 1; y++; }
+    }
+    const displayed = months.slice(-12);
+    const maxC = Math.max(...displayed.map(m => counts[m] || 0), 1);
     return `<div class="monthly-stats">
       <p class="eyebrow" style="margin-top:28px">每月紀錄</p>
       <div class="monthly-chart">
-        ${months.map(m => `<div class="month-row">
+        ${displayed.map(m => {
+          const n = counts[m] || 0;
+          return `<div class="month-row">
           <span class="month-label">${m.replace("-", "/")}</span>
-          <div class="month-bar-wrap"><div class="month-bar" style="width:${Math.round(counts[m] / maxC * 100)}%"></div></div>
-          <span class="month-count">${counts[m]}</span>
-        </div>`).join("")}
+          <div class="month-bar-wrap"><div class="month-bar" style="width:${Math.round(n / maxC * 100)}%"></div></div>
+          <span class="month-count">${n || ''}</span>
+        </div>`;
+        }).join("")}
       </div>
     </div>`;
   }
@@ -1258,7 +1273,7 @@ function startDanmaku() {
    * 事件
    * ------------------------------------------------------------------ */
   app.addEventListener('click', (ev) => {
-    const card = ev.target.closest('.shelf-entry');
+    const card = ev.target.closest('.shelf-entry:not(.shelf-entry--add)');
     if (card && app.contains(card)) {
       ev.preventDefault();
       const href = card.getAttribute('href') || '';
