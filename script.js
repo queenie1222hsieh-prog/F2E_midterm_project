@@ -284,14 +284,14 @@
 
   function renderHome() {
     setChrome('home');
-    homeList = byDateDesc(entries);
+    homeList = [...entries].sort(() => Math.random() - 0.5);
     if (!homeList.length) {
       app.innerHTML = loadState === 'ready'
         ? '<p class="empty">書架還是空的。登入後到自己的頁面新增第一筆吧。</p>'
         : statusHTML();
       return;
     }
-    if (homeIndex === null || homeIndex >= homeList.length) homeIndex = Math.floor(homeList.length / 2);
+    if (homeIndex === null || homeIndex >= homeList.length) homeIndex = 0;
 
     const shelfEntriesHTML = Object.keys(PEOPLE).map(shelfEntryCardHTML).join('')
       + `<button class="shelf-entry shelf-entry--add" type="button" data-add-owner aria-label="新增書架主人">＋ 新增書架</button>`;
@@ -716,29 +716,150 @@ function startDanmaku() {
   }
 
   /* ------------------------------------------------------------------
-   * About us / Donate
+   * 推薦書：任何人都可以不登入推薦一本書
    * ------------------------------------------------------------------ */
+  function recCardHTML(r) {
+    const date = r.created_at
+      ? new Date(r.created_at).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' })
+      : '';
+    return `<div class="rec-card">
+      <p class="rec-card__title">${esc(r.title)}</p>
+      ${r.creator ? `<p class="rec-card__creator">${esc(r.creator)}</p>` : ''}
+      <p class="rec-card__review">${esc(r.review)}</p>
+      <p class="rec-card__meta">— ${esc(r.nickname)}${date ? `<span class="rec-card__date"> · ${esc(date)}</span>` : ''}</p>
+    </div>`;
+  }
+
+  async function loadRecsSection() {
+    const list = app.querySelector('.rec-list');
+    if (!list || !sb) return;
+    try {
+      const { data, error } = await sb.from('recommendations')
+        .select('title, creator, review, nickname, created_at')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      list.innerHTML = data.length
+        ? data.map(recCardHTML).join('')
+        : '<p class="empty recs-empty">還沒有推薦，來第一個吧。</p>';
+    } catch (err) {
+      console.error('loadRecs:', err);
+      list.innerHTML = `<p class="empty">載入失敗：${esc(err?.message || String(err))}</p>`;
+    }
+  }
+
+  async function submitRec(d, form) {
+    if (!sb) { alert('需要資料庫連線。'); return; }
+    const btn = form.querySelector('[type=submit]');
+    btn.disabled = true; btn.textContent = '送出中…';
+    const { data, error } = await sb.from('recommendations').insert({
+      title:    d.title.slice(0, 80),
+      creator:  (d.creator || '').slice(0, 60),
+      review:   d.review.slice(0, 400),
+      nickname: d.nickname.slice(0, 30)
+    }).select('title, creator, review, nickname, created_at').single();
+    btn.disabled = false; btn.textContent = '送出推薦';
+    if (error) { alert('送出失敗：' + error.message); return; }
+    form.reset();
+    const list = app.querySelector('.rec-list');
+    if (list) {
+      list.querySelector('.recs-empty')?.remove();
+      list.insertAdjacentHTML('afterbegin', recCardHTML(data));
+    }
+  }
+
   function renderAbout() {
     setChrome('about');
-    document.title = 'About us · Our Shelves';
+    document.title = '推薦書 · Our Shelves';
     app.innerHTML = `
-      <section class="page">
-        <p class="eyebrow">About us</p>
-        <h2>Our Shelves</h2>
-        <p>這是我們的書架，收著我們讀過的書、看過的電影，和看完之後留下的一點心得。</p>
-        <p>${Object.keys(PEOPLE).map(k => `<a href="#/${k}">${esc(PEOPLE[k].name)}'s page</a>`).join(' · ')}</p>
+      <section class="recs-page">
+        <p class="eyebrow">大家的推薦</p>
+        <h2>推薦一本書</h2>
+        <p class="recs-lead">不用登入，任何人都可以推薦一本喜歡的書，留下幾句心得。</p>
+        <form class="rec-form" data-rec-form>
+          <input class="rec-input" name="title" placeholder="書名" maxlength="80" required autocomplete="off">
+          <input class="rec-input" name="creator" placeholder="作者（選填）" maxlength="60" autocomplete="off">
+          <textarea class="rec-input" name="review" placeholder="推薦的理由或心得" maxlength="400" rows="4" required></textarea>
+          <div class="rec-form-foot">
+            <input class="rec-input rec-input--name" name="nickname" placeholder="你的名字" maxlength="30" required autocomplete="off">
+            <button class="btn" type="submit">送出推薦</button>
+          </div>
+        </form>
+        <div class="rec-list"><p class="empty">載入中⋯</p></div>
       </section>`;
+    loadRecsSection();
+  }
+
+  const WISHES = [
+    { icon: '📖', name: '下一本想買的書',     note: '書單已排到明年，但口袋沒那麼深', price: 350 },
+    { icon: '🎬', name: '電影院票（兩張）',   note: '票越來越貴，但大螢幕就是不一樣',   price: 560 },
+    { icon: '🧋', name: '寫心得用的珍奶',     note: '沒有珍奶大腦無法運作，這是科學',   price: 75  },
+    { icon: '📚', name: '二手書攤的驚喜',     note: '每次去都忍不住想把整攤搬回家',     price: 150 },
+  ];
+
+  function donateClick(sourceEl) {
+    const numEl = document.getElementById('donate-num');
+    if (!numEl) return;
+    const n = parseInt(numEl.textContent || '0') + 1;
+    numEl.textContent = n;
+    try { localStorage.setItem('donate-hearts', n); } catch (_) {}
+
+    const cup = document.getElementById('donate-cup');
+    if (cup) { cup.classList.remove('cup-bounce'); void cup.offsetWidth; cup.classList.add('cup-bounce'); }
+
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const icons = ['☕', '♡', '✨', '💛', '📖'];
+    const fly = document.createElement('span');
+    fly.textContent = icons[Math.floor(Math.random() * icons.length)];
+    fly.style.cssText = 'position:fixed;pointer-events:none;z-index:9000;font-size:22px;transition:none;user-select:none';
+    const rect = sourceEl.getBoundingClientRect();
+    fly.style.left = (rect.left + rect.width / 2 - 11) + 'px';
+    fly.style.top  = rect.top + 'px';
+    document.body.appendChild(fly);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      fly.style.transition = 'transform .4s cubic-bezier(.22,1,.36,1), opacity .4s ease .05s';
+      fly.style.transform  = 'translateY(-88px) scale(1.5)';
+      fly.style.opacity    = '0';
+      setTimeout(() => fly.remove(), 450);
+    }));
   }
 
   function renderDonate() {
     setChrome('donate');
-    document.title = 'Donate<3 · Our Shelves';
+    document.title = 'Donate♡ · Our Shelves';
+    const saved = (() => { try { return parseInt(localStorage.getItem('donate-hearts') || '0'); } catch (_) { return 0; } })();
     app.innerHTML = `
-      <section class="page">
-        <p class="eyebrow">Donate&lt;3</p>
+      <section class="donate-page">
+        <p class="eyebrow">Donate♡</p>
         <h2>請我們喝杯咖啡</h2>
-        <p>讓兩位窮女大學生可以買更多書跟電影票。Pleaseee donate us.<div>贊助方式準備中。</div></p>
+        <p class="donate-lead">讓兩位窮女大學生可以買更多書跟電影票。Pleaseee donate us.</p>
+
+        <div class="coffee-zone">
+          <button class="coffee-cup" type="button" id="donate-cup" aria-label="投一個心意">
+            <span class="cup-emoji">☕</span>
+          </button>
+          <p class="heart-count">已收到 <strong id="donate-num">${saved}</strong> 個心意</p>
+          <button class="btn donate-click-btn" type="button">投一個心意 ♡</button>
+        </div>
+
+        <div class="wishlist">
+          <p class="eyebrow">願望清單</p>
+          <p class="wishlist-subtitle">你的贊助可以讓我們買⋯</p>
+          <div class="wish-grid">
+            ${WISHES.map(w => `
+              <div class="wish-card">
+                <span class="wish-icon">${w.icon}</span>
+                <p class="wish-name">${esc(w.name)}</p>
+                <p class="wish-note">${esc(w.note)}</p>
+                <p class="wish-price">NT$&nbsp;${w.price}</p>
+              </div>`).join('')}
+          </div>
+          <p class="donate-note">贊助方式準備中，敬請期待。</p>
+        </div>
       </section>`;
+
+    app.querySelector('.donate-click-btn').addEventListener('click', function () { donateClick(this); });
+    document.getElementById('donate-cup').addEventListener('click', function () { donateClick(this); });
   }
 
   /* ------------------------------------------------------------------
@@ -1203,6 +1324,18 @@ function startDanmaku() {
         const block = app.querySelector(`[data-cr-owner="${owner}"]`);
         if (block) block.outerHTML = crBlockHTML(owner);
       });
+      return;
+    }
+
+    const recForm = ev.target.closest('[data-rec-form]');
+    if (recForm) {
+      ev.preventDefault();
+      const title    = (recForm.elements.title.value    || '').trim();
+      const creator  = (recForm.elements.creator.value  || '').trim();
+      const review   = (recForm.elements.review.value   || '').trim();
+      const nickname = (recForm.elements.nickname.value || '').trim();
+      if (!title || !review || !nickname) return;
+      submitRec({ title, creator, review, nickname }, recForm);
       return;
     }
 
