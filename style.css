@@ -17,7 +17,6 @@
     --sz-lg: clamp(44px, 6.5vw, 88px);
     --sz-md: 22px;
     --sz-sm: 14px;
-    --sz-xs: 11px;
 }
 
 body[data-owner="queenie"] {
@@ -96,7 +95,7 @@ a {
     flex: 1;
     justify-content: center;
     font-family: var(--sans);
-    font-size: clamp(var(--sz-xs), 1.1vw, var(--sz-sm));
+    font-size: clamp(var(--sz-sm), 1.1vw, var(--sz-sm));
     font-weight: 500;
 }
 
@@ -111,7 +110,7 @@ a {
         }
 
         .site-nav a[aria-current="page"] {
-            font-weight: 900;
+            font-weight: 700;
             text-decoration: underline;
         }
 
@@ -240,7 +239,7 @@ a {
     background: var(--ink);
     color: #fff;
     font-size: var(--sz-sm);
-    font-weight: 600;
+    font-weight: 700;
     text-decoration: none;
     cursor: pointer;
     transition: transform 0.15s ease, background 0.15s ease;
@@ -422,7 +421,7 @@ body[data-view="home"] .panel {
     white-space: nowrap;
     font-family: var(--serif);
     font-style: italic;
-    font-size: clamp(var(--sz-xs), 1.15vw, var(--sz-sm));
+    font-size: clamp(var(--sz-sm), 1.15vw, var(--sz-sm));
     color: var(--ink);
     opacity: 0.28;
     letter-spacing: 0.02em;
@@ -477,8 +476,8 @@ body[data-view="home"] .panel {
 
 .ss-label {
     font-family: var(--sans);
-    font-size: var(--sz-xs);
-    font-weight: 600;
+    font-size: var(--sz-sm);
+    font-weight: 700;
     letter-spacing: .12em;
     text-transform: uppercase;
     color: var(--muted);
@@ -642,7 +641,7 @@ body[data-view="home"] .panel {
 
 .se-stat {
     font-family: var(--sans);
-    font-size: var(--sz-xs);
+    font-size: var(--sz-sm);
     color: var(--muted);
 }
 
@@ -711,7 +710,7 @@ body[data-view="home"] .panel {
 
 .add-owner-label {
     font-size: var(--sz-sm);
-    font-weight: 600;
+    font-weight: 700;
     color: rgba(255, 255, 255, 0.85);
     letter-spacing: 0.01em;
     transition: color 0.2s ease;
@@ -773,7 +772,7 @@ body[data-view="home"] .panel {
 }
 
 .se-recent {
-    font-size: var(--sz-xs);
+    font-size: var(--sz-sm);
     color: var(--muted);
     min-width: 0;
     overflow: hidden;
@@ -782,8 +781,8 @@ body[data-view="home"] .panel {
 }
 
 .se-enter {
-    font-size: var(--sz-xs);
-    font-weight: 600;
+    font-size: var(--sz-sm);
+    font-weight: 700;
     color: var(--ink);
     white-space: nowrap;
     margin-left: 8px;
@@ -1005,7 +1004,7 @@ body[data-view="owner"] .panel {
 
 .card__type {
     font-family: var(--sans);
-    font-size: var(--sz-xs);
+    font-size: var(--sz-sm);
     font-weight: 700;
     letter-spacing: 0.1em;
     color: rgba(255,255,255,0.6);
@@ -1014,8 +1013,8 @@ body[data-view="owner"] .panel {
 
 .card__title {
     font-family: var(--sans);
-    font-size: var(--sz-xs);
-    font-weight: 600;
+    font-size: var(--sz-sm);
+    font-weight: 700;
     color: #fff;
     margin: 0 0 3px;
     line-height: 1.35;
@@ -1028,7 +1027,7 @@ body[data-view="owner"] .panel {
 
 .card__creator {
     font-family: var(--sans);
-    font-size: var(--sz-xs);
+    font-size: var(--sz-sm);
     color: rgba(255,255,255,0.72);
     margin: 0 0 2px;
     overflow: hidden;
@@ -1038,7 +1037,7 @@ body[data-view="owner"] .panel {
 
 .card__date {
     font-family: var(--sans);
-    font-size: var(--sz-xs);
+    font-size: var(--sz-sm);
     color: rgba(255,255,255,0.55);
     margin: 0;
 }
@@ -1102,7 +1101,7 @@ body[data-view="owner"] .panel {
     padding: 4px 10px;
     background: var(--field);
     font-size: var(--sz-sm);
-    font-weight: 600;
+    font-weight: 700;
     line-height: 23px;
 }
 
@@ -1394,7 +1393,7 @@ dialog {
 }
 
 .genres__title {
-    font-size: var(--sz-lg);
+    font-size: var(--sz-md);
     font-weight: 400;
     margin: 0 0 28px;
 }
@@ -1527,7 +1526,7 @@ dialog {
 
 .sticky__name {
     margin: 0 0 8px;
-    font-weight: 600;
+    font-weight: 700;
     font-size: var(--sz-sm);
 }
 
@@ -1843,13 +1842,13 @@ dialog {
 
 .wish-name {
     font-size: var(--sz-sm);
-    font-weight: 600;
+    font-weight: 700;
     margin: 0;
     color: var(--ink);
 }
 
 .wish-note {
-    font-size: var(--sz-xs);
+    font-size: var(--sz-sm);
     color: var(--muted);
     line-height: 1.55;
     margin: 0;
@@ -1936,7 +1935,7 @@ textarea.rec-input {
 
 .rec-card__title {
     font-size: var(--sz-md);
-    font-weight: 600;
+    font-weight: 700;
     margin: 0 0 4px;
     color: var(--ink);
 }
@@ -1958,7 +1957,7 @@ textarea.rec-input {
 }
 
 .rec-card__meta {
-    font-size: var(--sz-xs);
+    font-size: var(--sz-sm);
     color: var(--muted);
     font-family: var(--sans);
     margin: 0;
@@ -1978,8 +1977,8 @@ textarea.rec-input {
 
 .cr-eyebrow {
     font-family: var(--sans);
-    font-size: var(--sz-xs);
-    font-weight: 600;
+    font-size: var(--sz-sm);
+    font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--muted);
@@ -2010,22 +2009,22 @@ textarea.rec-input {
 }
 
 .cr-title {
-    font-size: var(--sz-xs);
-    font-weight: 600;
+    font-size: var(--sz-sm);
+    font-weight: 700;
     line-height: 1.35;
     margin: 0 0 4px;
     color: var(--ink);
 }
 
 .cr-creator {
-    font-size: var(--sz-xs);
+    font-size: var(--sz-sm);
     color: var(--muted);
     font-family: var(--sans);
     margin: 0 0 6px;
 }
 
 .cr-progress {
-    font-size: var(--sz-xs);
+    font-size: var(--sz-sm);
     color: var(--muted);
     font-family: var(--sans);
     margin: 0 0 5px;
@@ -2050,7 +2049,7 @@ textarea.rec-input {
     display: block;
     margin-top: 10px;
     font-family: var(--sans);
-    font-size: var(--sz-xs);
+    font-size: var(--sz-sm);
     font-weight: 500;
     color: var(--muted);
     background: none;
@@ -2079,7 +2078,7 @@ textarea.rec-input {
     border: 1px solid var(--line);
     border-radius: 8px;
     font-family: var(--sans);
-    font-size: var(--sz-xs);
+    font-size: var(--sz-sm);
     background: var(--field);
     color: var(--ink);
     box-sizing: border-box;
@@ -2118,5 +2117,5 @@ textarea.rec-input {
 
 .btn--sm {
     padding: 4px 12px;
-    font-size: var(--sz-xs);
+    font-size: var(--sz-sm);
 }
