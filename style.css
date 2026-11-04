@@ -1498,22 +1498,49 @@ dialog {
 }
 
 .genre-section {
-    margin-bottom: 52px;
+    margin-bottom: 60px;
     scroll-margin-top: 120px;
+    padding: 0;
+    background: none;
 }
 
 .genre-section__title {
     font-size: var(--sz-md);
     font-weight: 400;
-    margin: 0 0 18px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--line);
+    margin: 0 0 14px;
+    padding-bottom: 0;
+    border-bottom: none;
 }
 
 .genre-covers {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 18px;
+    align-items: end;
+    padding: 18px 18px 18px;
+    border-radius: 6px 6px 0 0;
+    position: relative;
+}
+
+.genre-section[data-ci="0"] .genre-covers,
+.genre-section[data-ci="2"] .genre-covers,
+.genre-section[data-ci="4"] .genre-covers { background: #F0EBE0; }
+
+.genre-section[data-ci="1"] .genre-covers,
+.genre-section[data-ci="3"] .genre-covers,
+.genre-section[data-ci="5"] .genre-covers { background: #F7F3EC; }
+
+/* wooden shelf board */
+.genre-covers::after {
+    content: '';
+    position: absolute;
+    bottom: -22px;
+    left: 0;
+    right: 0;
+    height: 22px;
+    background: linear-gradient(180deg, #C8964A 0%, #A87830 55%, #8C6220 100%);
+    border-radius: 3px;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.22), 0 3px 6px rgba(0,0,0,0.14), inset 0 2px 4px rgba(255,210,120,0.3);
 }
 
 .genre-card {
@@ -1526,11 +1553,12 @@ dialog {
         aspect-ratio: 206 / 272;
         border-radius: 0;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 2px 4px 8px rgba(0,0,0,0.18);
     }
 
     .genre-card:hover .cover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 22px rgba(0, 0, 0, 0.14);
+        transform: translateY(-6px);
+        box-shadow: 4px 12px 22px rgba(0, 0, 0, 0.22);
     }
 
 /* 書籍詳情頁的分類標籤 */

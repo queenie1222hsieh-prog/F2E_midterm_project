@@ -917,7 +917,7 @@ function startDanmaku() {
         <nav class="genre-chips" aria-label="分類">
           ${sorted.map(([g]) => `<a class="genre-chip" href="#genre-${esc(g)}">${esc(g)}<span class="genre-chip__count">${byGenre[g].length}</span></a>`).join("")}
         </nav>
-        ${sorted.map(([g, list]) => `<section class="genre-section" id="genre-${esc(g)}">
+        ${sorted.map(([g, list], i) => `<section class="genre-section" id="genre-${esc(g)}" data-ci="${i % 6}">
           <h3 class="genre-section__title">${esc(g)}</h3>
           <div class="genre-covers">
             ${list.map(e => `<a class="genre-card" href="#/entry/${encodeURIComponent(e.id)}">${coverHTML(e)}</a>`).join("")}
@@ -1024,11 +1024,19 @@ function startDanmaku() {
   function route() {
     stopAuto();
     stopWall();
-    const [a, b] = location.hash.replace(/^#\/?/, '').split('/');
+    const raw = location.hash.replace(/^#\/?/, '');
+    const [a, b] = raw.split('/');
     if (a === 'entry' && b) renderEntry(decodeURIComponent(b));
     else if (a === 'about') renderAbout();
     else if (a === 'donate') renderDonate();
-    else if (a === 'genres') renderGenres();
+    else if (a === 'genres' || raw.startsWith('genre-')) {
+      if (raw.startsWith('genre-')) {
+        renderGenres();
+        requestAnimationFrame(() => document.getElementById(raw)?.scrollIntoView({ behavior: 'smooth' }));
+        return;
+      }
+      renderGenres();
+    }
     else if (PEOPLE[a]) renderOwner(a);
     else renderHome();
     window.scrollTo({ top: 0 });
