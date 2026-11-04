@@ -4,10 +4,7 @@
   /* ------------------------------------------------------------------
    * 設定：兩位書架主人。改這裡就能換名字與簡介。
    * ------------------------------------------------------------------ */
-  let PEOPLE = {
-    queenie: { name: 'queenie', bio: '買了超多書，但很多其實都只看了一半。' },
-    jnmin:   { name: 'Jnmin',   bio: '雞米花、雞蛋花' }
-  };
+  let PEOPLE = {};
 
   /* ------------------------------------------------------------------
    * 雲端資料庫（Supabase）。publishable key 本來就會公開在網頁上，
@@ -22,7 +19,7 @@
   /* ------------------------------------------------------------------
    * 資料：存在 Supabase，瀏覽器另存一份快取，打開時先顯示快取再更新。
    * ------------------------------------------------------------------ */
-  const CACHE_KEY = 'ourshelves.cache.v2';
+  const CACHE_KEY = 'ourshelves.cache.v3';
   const LEGACY_KEY = 'ourshelves.entries.v1';  // 改用雲端前存在瀏覽器裡的資料，供匯入用
   const SAMPLE_REVIEW = '這是一則範例心得，請點「編輯」換成你自己的文字，或刪除這筆範例。';
 
@@ -35,13 +32,16 @@
   function readCache() {
     try {
       const data = JSON.parse(localStorage.getItem(CACHE_KEY));
-      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.entries)) {
+        if (data.people) Object.assign(PEOPLE, data.people);
+        return data.entries;
+      }
     } catch (_) { /* 沒有快取就等資料庫 */ }
     return [];
   }
 
   function writeCache() {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify(entries)); } catch (_) { /* 隱私模式等情況略過 */ }
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ entries, people: PEOPLE })); } catch (_) { }
   }
 
   let entries = readCache();
@@ -141,9 +141,18 @@
   let currentOwner = null;
   let editingId = null;
 
+  const OWNER_ACCENTS = ['var(--pink)', 'var(--salmon)', 'var(--note)', 'var(--yellow)'];
+
   function setChrome(view, owner) {
     document.body.dataset.view = view;
-    if (owner) document.body.dataset.owner = owner; else delete document.body.dataset.owner;
+    if (owner) {
+      document.body.dataset.owner = owner;
+      const idx = Object.keys(PEOPLE).indexOf(owner);
+      document.body.style.setProperty('--accent', OWNER_ACCENTS[idx % OWNER_ACCENTS.length]);
+    } else {
+      delete document.body.dataset.owner;
+      document.body.style.removeProperty('--accent');
+    }
     tabs.forEach(t => {
       if (t.dataset.tab === owner) t.setAttribute('aria-current', 'page');
       else t.removeAttribute('aria-current');
@@ -166,9 +175,9 @@
     const aW = a.offsetWidth;
     if (!innerW || !aW) return;
     const owner = document.body.dataset.owner;
-    /* CSS text-align:center 為基準，往右（queenie）或往左（jnmin）偏移 half */
     const half = Math.round((innerW - aW) / 2);
-    const x = owner === 'queenie' ? half : owner === 'jnmin' ? -half : 0;
+    const ownerIdx = owner ? Object.keys(PEOPLE).indexOf(owner) : -1;
+    const x = ownerIdx >= 0 ? (ownerIdx % 2 === 0 ? half : -half) : 0;
     if (instant) {
       const prev = a.style.transition;
       a.style.transition = 'none';
@@ -203,8 +212,11 @@
 
   function animateCardToPage(owner, cardEl) {
     const rect = cardEl.getBoundingClientRect();
-    const cssVar = owner === 'queenie' ? '--pink' : '--salmon';
-    const bg = getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim() || '#fff';
+    const tmp = document.createElement('div');
+    tmp.style.cssText = 'position:absolute;visibility:hidden;background:var(--accent)';
+    document.body.appendChild(tmp);
+    const bg = getComputedStyle(tmp).backgroundColor || '#fff';
+    tmp.remove();
 
     const ov = document.createElement('div');
     ov.style.cssText =

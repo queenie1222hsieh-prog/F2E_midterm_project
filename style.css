@@ -19,13 +19,6 @@
     --sz-sm: 14px;
 }
 
-body[data-owner="queenie"] {
-    --accent: var(--pink);
-}
-
-body[data-owner="jnmin"] {
-    --accent: var(--salmon);
-}
 
 * {
     box-sizing: border-box;
