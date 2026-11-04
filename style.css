@@ -14,7 +14,7 @@
     --header-h: 64px;
     --panel-x: clamp(20px, 5vw, 72px);
     --accent: var(--yellow);
-    --sz-lg: clamp(52px, 7.5vw, 80px);
+    --sz-lg: clamp(36px, 4vw, 56px);
     --sz-md: 22px;
     --sz-sm: 14px;
 }
@@ -96,8 +96,9 @@ a {
 .site-nav {
     display: flex;
     gap: clamp(24px, 3.5vw, 52px);
-    flex: 1;
-    justify-content: center;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     font-family: var(--sans);
     font-size: var(--sz-sm);
     font-weight: 500;
@@ -125,6 +126,7 @@ a {
 
 .auth-btn {
     flex-shrink: 0;
+    margin-left: auto;
     padding: 5px 14px;
     border: 1px solid var(--ink);
     border-radius: 999px;
@@ -365,6 +367,25 @@ body[data-view="home"] .panel {
     line-height: 1.05;
     letter-spacing: -.02em;
     margin: 0 0 4px;
+    cursor: pointer;
+    user-select: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .home-hero {
+        transition: transform 0.25s cubic-bezier(.22,1,.36,1), text-shadow 0.25s ease;
+    }
+    .home-hero:hover {
+        transform: translateY(-10px);
+        text-shadow:
+            0 4px 8px rgba(0,0,0,0.07),
+            0 10px 24px rgba(0,0,0,0.09),
+            0 20px 48px rgba(0,0,0,0.06);
+    }
+    .home-hero:active {
+        transform: translateY(-4px);
+        transition-duration: 0.1s;
+    }
 }
 
 /* ---------- Home: Cover Flow carousel ---------- */
@@ -692,11 +713,11 @@ body[data-view="home"] .panel {
     justify-content: center;
     gap: 12px;
     min-height: 370px;
-    background: rgba(255, 255, 255, 0.13);
-    border: 2px dashed rgba(255, 255, 255, 0.6);
+    background: var(--field);
+    border: 2px dashed var(--line);
     font-family: var(--sans);
     cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .add-owner-icon {
@@ -705,34 +726,34 @@ body[data-view="home"] .panel {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid rgba(255, 255, 255, 0.7);
+    border: 2px solid var(--muted);
     border-radius: 50%;
     font-size: var(--sz-md);
     line-height: 1;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--muted);
     transition: border-color 0.2s ease, color 0.2s ease;
 }
 
 .add-owner-label {
     font-size: var(--sz-sm);
     font-weight: 700;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--muted);
     letter-spacing: 0.01em;
     transition: color 0.2s ease;
 }
 
 .shelf-entry--add:hover {
-    background: rgba(255, 255, 255, 0.22);
-    border-color: rgba(255, 255, 255, 0.85);
+    background: var(--cream);
+    border-color: var(--ink);
 }
 
 .shelf-entry--add:hover .add-owner-icon {
-    border-color: #fff;
-    color: #fff;
+    border-color: var(--ink);
+    color: var(--ink);
 }
 
 .shelf-entry--add:hover .add-owner-label {
-    color: #fff;
+    color: var(--ink);
 }
 
 @keyframes se-col-up {
@@ -795,6 +816,10 @@ body[data-view="home"] .panel {
 }
 
 /* ---------- Owner page ---------- */
+
+body[data-view="owner"] .site-footer {
+    display: none;
+}
 
 body[data-view="owner"] .panel {
     padding-top: 0;
@@ -891,6 +916,53 @@ body[data-view="owner"] .panel {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+}
+
+.profile-field {
+    position: relative;
+}
+
+.edit-inline-btn {
+    position: absolute;
+    top: 4px;
+    right: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: var(--sz-sm);
+    padding: 2px 4px;
+    line-height: 1;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.profile-field:hover .edit-inline-btn {
+    opacity: 1;
+}
+
+.edit-inline-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--sz-sm);
+    margin-bottom: 8px;
+}
+
+.edit-inline-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.edit-inline-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
 }
 
 .chip {
@@ -1763,6 +1835,12 @@ dialog {
     text-align: center;
 }
 
+.donate-page h2 {
+    font-size: var(--sz-md);
+    font-weight: 700;
+    margin: 0 0 12px;
+}
+
 .donate-lead {
     color: var(--muted);
     line-height: 1.7;
@@ -1826,6 +1904,12 @@ dialog {
     gap: 56px;
     padding-top: 28px;
     align-items: start;
+}
+
+.recs-page h2 {
+    font-size: var(--sz-md);
+    font-weight: 700;
+    margin: 0 0 12px;
 }
 
 @media (max-width: 700px) {

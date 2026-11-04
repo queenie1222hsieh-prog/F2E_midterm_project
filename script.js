@@ -328,6 +328,15 @@
       startDanmaku();
     }));
 
+    /* Hero title: click to scroll to shelf section */
+    const heroTitle = app.querySelector('.home-hero');
+    const shelfSection = app.querySelector('.shelf-section');
+    if (heroTitle && shelfSection) {
+      heroTitle.addEventListener('click', () => {
+        shelfSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+
     /* Shelf section: entry reveal */
     const ssInner = app.querySelector('.ss-inner');
     if (ssInner) {
@@ -468,6 +477,45 @@ function startDanmaku() {
     </a>`;
   }
 
+  function showProfileEdit(field) {
+    const profile = app.querySelector('.profile[data-profile-owner]');
+    if (!profile) return;
+    const ownerId = profile.dataset.profileOwner;
+    const current = PEOPLE[ownerId][field] || '';
+    const wrap = profile.querySelector(`.profile-field:has([data-profile-${field}])`);
+    if (!wrap) return;
+    wrap.innerHTML = field === 'name'
+      ? `<input class="edit-inline-input" type="text" value="${esc(current)}" maxlength="40" autocomplete="off">
+         <div class="edit-inline-actions">
+           <button class="btn" type="button" data-save-profile="${field}">儲存</button>
+           <button class="btn btn--ghost" type="button" data-cancel-profile>取消</button>
+         </div>`
+      : `<textarea class="edit-inline-input edit-inline-textarea" maxlength="200" rows="4">${esc(current)}</textarea>
+         <div class="edit-inline-actions">
+           <button class="btn" type="button" data-save-profile="${field}">儲存</button>
+           <button class="btn btn--ghost" type="button" data-cancel-profile>取消</button>
+         </div>`;
+    const input = wrap.querySelector('.edit-inline-input');
+    input.focus();
+    if (field === 'name') input.select();
+  }
+
+  async function saveProfileEdit(field) {
+    const profile = app.querySelector('.profile[data-profile-owner]');
+    if (!profile) return;
+    const ownerId = profile.dataset.profileOwner;
+    const input = profile.querySelector('.edit-inline-input');
+    if (!input) return;
+    const newVal = input.value.trim();
+    if (field === 'name' && !newVal) return;
+    const saveBtn = profile.querySelector(`[data-save-profile="${field}"]`);
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '儲存中…'; }
+    const { error } = await sb.from('owners').update({ [field]: newVal }).eq('owner', ownerId);
+    if (error) { alert('儲存失敗：' + error.message); if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '儲存'; } return; }
+    PEOPLE[ownerId][field] = newVal;
+    renderOwner(ownerId);
+  }
+
   function renderOwner(id) {
     const prevOwner = currentOwner;
     if (currentOwner !== id) { filter = 'all'; currentOwner = id; }
@@ -492,10 +540,16 @@ function startDanmaku() {
 
     app.innerHTML = `
       <section class="owner${enterDir ? ` owner--enter-${enterDir}` : ''}" aria-label="${esc(p.name)}的書架">
-        <aside class="profile">
+        <aside class="profile" data-profile-owner="${id}">
           <p class="eyebrow">Shelf of</p>
-          <h2>${esc(p.name)}</h2>
-          <p class="bio">${esc(p.bio)}</p>
+          <div class="profile-field">
+            <h2 data-profile-name>${esc(p.name)}</h2>
+            ${canEdit(id) ? `<button class="edit-inline-btn" type="button" data-edit-name aria-label="編輯名字">✎</button>` : ''}
+          </div>
+          <div class="profile-field">
+            <p class="bio" data-profile-bio>${esc(p.bio)}</p>
+            ${canEdit(id) ? `<button class="edit-inline-btn" type="button" data-edit-bio aria-label="編輯簡介">✎</button>` : ''}
+          </div>
           ${crBlockHTML(id)}
           <dl class="stats">
             <div><dt>讀過的書</dt><dd>${books}</dd></div>
@@ -519,11 +573,9 @@ function startDanmaku() {
     startWall();
   }
 
-  /* 書牆自動循環捲動：每一欄把自己的卡片複製接在後面，各自無縫循環。
-   * 滑鼠停在書牆上時暫停，可用滾輪（或觸控拖曳）上下捲，同樣會循環。 */
-  const WALL_SPEED = 24;   // 每秒移動幾 px
-  const WALL_DIR = 1;      // 1：卡片由上往下移動；-1：由下往上
-  const WALL_STAGGER = 100; // 全部模式：兩欄錯落距離（書/電影模式時為 0）
+  const WALL_SPEED = 24;
+  const WALL_DIR = 1;
+  const WALL_STAGGER = 100;
   let wallRaf = null;
 
   function stopWall() {
@@ -541,10 +593,9 @@ function startDanmaku() {
     });
     if (wall) wall.onwheel = wall.ontouchstart = wall.ontouchmove = null;
     wall.querySelectorAll('.wall-arrow').forEach(b => b.remove());
-    // 手機版書牆不捲動
     if (!cols.length || getComputedStyle(wall).overflowY === 'visible') return;
-    const stagger = filter === 'all' ? WALL_STAGGER : 0;
-    // 書／電影篩選模式：arrow buttons 手動捲動，不循環
+
+    // 書／電影篩選模式：arrow buttons 手動捲動
     if (filter !== 'all') {
       const track = wall.querySelector('.masonry__track');
       if (!track) return;
@@ -574,30 +625,23 @@ function startDanmaku() {
         };
         upBtn.onclick = () => setPos(scrollPos - wall.clientHeight * 0.8, true);
         downBtn.onclick = () => setPos(scrollPos + wall.clientHeight * 0.8, true);
-        wall.onwheel = (e) => {
-          e.preventDefault();
-          setPos(scrollPos + e.deltaY * (e.deltaMode === 1 ? 16 : 1), false);
-        };
+        wall.onwheel = (e) => { e.preventDefault(); setPos(scrollPos + e.deltaY * (e.deltaMode === 1 ? 16 : 1), false); };
         let touchY0 = 0;
         wall.ontouchstart = (e) => { touchY0 = e.touches[0].clientY; };
-        wall.ontouchmove = (e) => {
-          e.preventDefault();
-          setPos(scrollPos - (e.touches[0].clientY - touchY0), false);
-          touchY0 = e.touches[0].clientY;
-        };
+        wall.ontouchmove = (e) => { e.preventDefault(); setPos(scrollPos - (e.touches[0].clientY - touchY0), false); touchY0 = e.touches[0].clientY; };
         setPos(0, false);
       });
       return;
     }
+
+    // 全部模式：自動循環捲動
     const activeCols = cols.filter(c => c.children.length);
     if (!activeCols.length) return;
-
     const gap = parseFloat(getComputedStyle(activeCols[0]).rowGap) || 0;
     const viewH = wall.clientHeight || 600;
     const loops = activeCols.map((col, i) => {
       const items = [...col.children];
       const period = col.offsetHeight + gap;
-      // 至少複製到能填滿畫面兩倍，確保循環不管幾筆資料都能動
       const copies = Math.max(Math.ceil(viewH * 2 / period), 2);
       for (let k = 0; k < copies; k++) {
         items.forEach(n => {
@@ -608,39 +652,24 @@ function startDanmaku() {
           col.appendChild(c);
         });
       }
-      return { col, period, phase: (i - Math.floor(activeCols.length / 2)) * stagger };
+      return { col, period, phase: (i - Math.floor(activeCols.length / 2)) * WALL_STAGGER };
     });
-
     let pos = 0;
     const apply = () => loops.forEach(l => {
       const y = (((pos + l.phase) % l.period) + l.period) % l.period;
       l.col.style.transform = `translateY(${-y}px)`;
     });
     apply();
-
-    wall.onwheel = (e) => {
-      e.preventDefault();
-      pos += e.deltaY * (e.deltaMode === 1 ? 16 : 1);
-      apply();
-    };
+    wall.onwheel = (e) => { e.preventDefault(); pos += e.deltaY * (e.deltaMode === 1 ? 16 : 1); apply(); };
     let touchY = 0;
     wall.ontouchstart = (e) => { touchY = e.touches[0].clientY; };
-    wall.ontouchmove = (e) => {
-      e.preventDefault();
-      const y = e.touches[0].clientY;
-      pos += touchY - y;
-      touchY = y;
-      apply();
-    };
-
+    wall.ontouchmove = (e) => { e.preventDefault(); pos += touchY - e.touches[0].clientY; touchY = e.touches[0].clientY; apply(); };
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let last = performance.now();
     const tick = (now) => {
       const dt = Math.min(now - last, 100) / 1000;
       last = now;
-      const held = reduced || dialog.open || document.hidden ||
-        wall.matches(':hover') || wall.querySelector(':focus-visible');
-      if (!held) {
+      if (!reduced && !dialog.open && !document.hidden && !wall.matches(':hover') && !wall.querySelector(':focus-visible')) {
         pos -= WALL_DIR * WALL_SPEED * dt;
         apply();
       }
@@ -1267,7 +1296,7 @@ function startDanmaku() {
       return;
     }
 
-    const t = ev.target.closest('[data-add],[data-import],[data-filter],[data-edit],[data-delete],[data-cr-edit],[data-cr-cancel],[data-cr-delete],[data-add-owner],.book');
+    const t = ev.target.closest('[data-add],[data-import],[data-filter],[data-edit],[data-delete],[data-cr-edit],[data-cr-cancel],[data-cr-delete],[data-add-owner],[data-edit-name],[data-edit-bio],[data-save-profile],[data-cancel-profile],.book');
     if (!t || !app.contains(t)) return;
 
     if (t.matches('.book')) {
@@ -1304,6 +1333,14 @@ function startDanmaku() {
           if (block) block.outerHTML = crBlockHTML(owner);
         });
       }
+    } else if (t.hasAttribute('data-edit-name')) {
+      showProfileEdit('name');
+    } else if (t.hasAttribute('data-edit-bio')) {
+      showProfileEdit('bio');
+    } else if (t.dataset.saveProfile) {
+      saveProfileEdit(t.dataset.saveProfile);
+    } else if (t.hasAttribute('data-cancel-profile')) {
+      if (currentOwner) renderOwner(currentOwner);
     }
   });
 
