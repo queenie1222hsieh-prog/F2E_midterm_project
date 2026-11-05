@@ -18,6 +18,7 @@
     --sz-lg: clamp(36px, 4vw, 56px);
     --sz-md: 22px;
     --sz-sm: 14px;
+    --btn-h: 42px;
 }
 
 
@@ -119,7 +120,10 @@ a {
 
 .auth-btn {
     justify-self: end;
-    padding: 5px 14px;
+    display: inline-flex;
+    align-items: center;
+    height: var(--btn-h);
+    padding: 0 14px;
     border: 1px solid var(--ink);
     border-radius: 999px;
     background: transparent;
@@ -215,7 +219,7 @@ a {
     max-width: 640px;
     margin: 0;
     padding-top: 28px;
-    line-height: 1.8;
+    line-height: 1.7;
 }
 
     .page h2 {
@@ -236,7 +240,8 @@ a {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 10px 20px;
+    height: var(--btn-h);
+    padding: 0 20px;
     border: 1px solid var(--ink);
     border-radius: 999px;
     background: var(--ink);
@@ -964,7 +969,10 @@ body[data-view="owner"] .panel {
 }
 
 .chip {
-    padding: 6px 16px;
+    display: inline-flex;
+    align-items: center;
+    height: var(--btn-h);
+    padding: 0 16px;
     border: 1px solid var(--line);
     border-radius: 999px;
     background: #fff;
@@ -1250,7 +1258,7 @@ body[data-view="owner"] .panel {
 }
 
 .quote {
-    line-height: 1.8;
+    line-height: 1.7;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
@@ -1325,7 +1333,7 @@ dialog {
 .dialog-note {
     margin: 0 0 14px;
     color: var(--muted);
-    line-height: 1.6;
+    line-height: 1.7;
 }
 
     .dialog-note:empty {
@@ -1486,7 +1494,8 @@ dialog {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 18px;
+    height: var(--btn-h);
+    padding: 0 18px;
     border: 1px solid var(--line);
     border-radius: 999px;
     background: #fff;
@@ -1639,7 +1648,7 @@ dialog {
 .sticky__text {
     margin: 0 0 10px;
     font-size: var(--sz-sm);
-    line-height: 1.65;
+    line-height: 1.7;
     font-variation-settings: "SOFT" 60, "WONK" 1;
 }
 
@@ -2017,7 +2026,7 @@ textarea.rec-input {
 
 .rec-card__review {
     font-size: var(--sz-sm);
-    line-height: 1.75;
+    line-height: 1.7;
     margin: 0 0 12px;
     color: var(--ink);
     white-space: pre-wrap;
@@ -2184,6 +2193,6 @@ textarea.rec-input {
 }
 
 .btn--sm {
-    padding: 4px 12px;
+    padding: 0 12px;
     font-size: var(--sz-sm);
 }
