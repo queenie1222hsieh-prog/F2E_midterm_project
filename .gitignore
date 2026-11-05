@@ -1,0 +1,9 @@
+# 編輯器與工具設定
+.vs/
+.mcp.json
+
+# 手動備份（改用 git 保存版本）
+_backup_*/
+
+# 設計文件（本機參考用）
+Our Shelves Site Map 與 Wireframe.pdf
