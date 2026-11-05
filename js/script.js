@@ -98,11 +98,11 @@
   const byDateDesc = (list) => [...list].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const todayStr = () => new Date().toLocaleDateString('sv-SE');
 
-  /* 封面只接受兩種寫法：網址（https://...）或專案內 img 資料夾的相對路徑（img/檔名.jpg） */
+  /* 封面只接受兩種寫法：網址（https://...）或專案內 images 資料夾的相對路徑（images/檔名.jpg） */
   function normalizeCover(u) {
     const s = String(u || '').trim().replace(/\\/g, '/');
     if (/^https?:\/\//i.test(s)) return s;
-    if (/^(\.\/)?img\/[^?#]+$/i.test(s) && !s.includes('..')) return s.replace(/^\.\//, '');
+    if (/^(\.\/)?images\/[^?#]+$/i.test(s) && !s.includes('..')) return s.replace(/^\.\//, '');
     return '';
   }
 
