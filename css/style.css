@@ -9,9 +9,9 @@
     --ink: #141414;
     --muted: #6F6A52;
     --line: #E6E2CC;
-    --serif: "Fraunces", "Noto Serif TC", Georgia, serif;
-    --sans: "Inter", "Noto Serif TC", system-ui, -apple-system, sans-serif;
-    --ui: "Inter", "Noto Sans TC", system-ui, -apple-system, sans-serif;
+    --serif: "Noto Serif TC", serif;
+    --sans: "Noto Serif TC", serif;
+    --ui: "Noto Serif TC", serif;
     --header-h: 64px;
     --panel-x: clamp(20px, 5vw, 72px);
     --accent: var(--yellow);
@@ -44,7 +44,6 @@ body {
     flex-direction: column;
     font-family: var(--serif);
     font-size: var(--sz-sm);
-    font-variation-settings: "SOFT" 0, "WONK" 1;
     color: var(--ink);
     background: var(--cream);
     -webkit-font-smoothing: antialiased;
@@ -1649,7 +1648,6 @@ dialog {
     margin: 0 0 10px;
     font-size: var(--sz-sm);
     line-height: 1.7;
-    font-variation-settings: "SOFT" 60, "WONK" 1;
 }
 
 .sticky__time {
@@ -1674,7 +1672,6 @@ dialog {
         color: var(--ink);
         font-size: var(--sz-sm);
         font-family: var(--serif);
-        font-variation-settings: "SOFT" 0, "WONK" 1;
         resize: vertical;
     }
 
@@ -1979,7 +1976,6 @@ dialog {
     color: var(--ink);
     font-size: var(--sz-sm);
     font-family: var(--serif);
-    font-variation-settings: "SOFT" 0, "WONK" 1;
     box-sizing: border-box;
 }
 
