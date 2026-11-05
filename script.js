@@ -164,28 +164,9 @@
     document.title = owner ? `${PEOPLE[owner].name}'s page · Our Shelves` : 'Our Shelves';
   }
 
-  /* 計算 "Our Shelves" 文字從 CSS 置中位置的偏移量，呼叫必須在頁面渲染後 */
-  function positionTitle(instant) {
+  function positionTitle() {
     const a = document.querySelector('.site-title a');
-    if (!a) return;
-    const h1 = a.closest('.site-title');
-    if (!h1) return;
-    const pad = parseFloat(getComputedStyle(h1).paddingLeft) || 24;
-    const innerW = h1.offsetWidth - pad * 2;
-    const aW = a.offsetWidth;
-    if (!innerW || !aW) return;
-    const owner = document.body.dataset.owner;
-    const half = Math.round((innerW - aW) / 2);
-    const ownerIdx = owner ? Object.keys(PEOPLE).indexOf(owner) : -1;
-    const x = ownerIdx >= 0 ? (ownerIdx % 2 === 0 ? half : -half) : 0;
-    if (instant) {
-      const prev = a.style.transition;
-      a.style.transition = 'none';
-      a.style.transform = x ? `translateX(${x}px)` : '';
-      requestAnimationFrame(() => { a.style.transition = prev; });
-    } else {
-      a.style.transform = x ? `translateX(${x}px)` : '';
-    }
+    if (a) a.style.transform = '';
   }
 
   /* ------------------------------------------------------------------
