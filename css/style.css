@@ -222,7 +222,7 @@ a {
     line-height: 1.7;
 }
 
-    .page h2 {
+    .page__title {
         margin: 0 0 16px;
         font-size: var(--sz-lg);
         font-weight: 400;
@@ -873,7 +873,7 @@ body[data-view="owner"] .panel {
     color: var(--muted);
 }
 
-.profile h2 {
+.profile__name {
     margin: 0 0 12px;
     font-size: var(--sz-lg);
     font-weight: 400;
@@ -1873,7 +1873,7 @@ dialog {
     text-align: center;
 }
 
-.donate-page h2 {
+.donate-title {
     font-size: var(--sz-md);
     font-weight: 700;
     margin: 0 0 12px;
@@ -1944,7 +1944,7 @@ dialog {
     align-items: start;
 }
 
-.recs-page h2 {
+.recs-title {
     font-size: var(--sz-md);
     font-weight: 700;
     margin: 0 0 12px;

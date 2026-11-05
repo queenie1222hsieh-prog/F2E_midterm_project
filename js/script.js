@@ -536,7 +536,7 @@ function startDanmaku() {
         <aside class="profile" data-profile-owner="${id}">
           <p class="eyebrow">Shelf of</p>
           <div class="profile-field">
-            <h2 data-profile-name>${esc(p.name)}</h2>
+            <h1 class="profile__name" data-profile-name>${esc(p.name)}</h1>
             ${canEdit(id) ? `<button class="edit-inline-btn" type="button" data-edit-name aria-label="編輯名字">✎</button>` : ''}
           </div>
           <div class="profile-field">
@@ -799,7 +799,7 @@ function startDanmaku() {
       <section class="recs-page">
         <div class="recs-left">
           <p class="eyebrow">大家的推薦</p>
-          <h2>推薦一本書</h2>
+          <h1 class="recs-title">推薦一本書</h1>
           <p class="recs-lead">不用登入，任何人都可以推薦一本喜歡的書，留下幾句心得。</p>
           <form class="rec-form" data-rec-form>
             <input class="rec-input" name="title" placeholder="書名" maxlength="80" required autocomplete="off">
@@ -854,7 +854,7 @@ function startDanmaku() {
     app.innerHTML = `
       <section class="donate-page">
         <p class="eyebrow">Donate♡</p>
-        <h2>請我們喝杯咖啡</h2>
+        <h1 class="donate-title">請我們喝杯咖啡</h1>
         <p class="donate-lead">讓兩位窮女大學生可以買更多書跟電影票。Pleaseee donate us.</p>
 
         <div class="coffee-zone">
@@ -880,7 +880,7 @@ function startDanmaku() {
     const books = entries.filter(e => e.genre && e.genre.trim());
     if (!books.length) {
       app.innerHTML = loadState === "ready"
-        ? `<section class="page"><p class="eyebrow">Genres</p><h2>書籍分類</h2><p>還沒有分類資料。在新增書籍時填入分類欄位吧。</p></section>`
+        ? `<section class="page"><p class="eyebrow">Genres</p><h1 class="page__title">書籍分類</h1><p>還沒有分類資料。在新增書籍時填入分類欄位吧。</p></section>`
         : statusHTML();
       return;
     }
@@ -894,12 +894,12 @@ function startDanmaku() {
     app.innerHTML = `
       <section class="genres">
         <p class="eyebrow">Genres</p>
-        <h2 class="genres__title">書籍分類</h2>
+        <h1 class="genres__title">書籍分類</h1>
         <nav class="genre-chips" aria-label="分類">
           ${sorted.map(([g]) => `<a class="genre-chip" href="#genre-${esc(g)}">${esc(g)}<span class="genre-chip__count">${byGenre[g].length}</span></a>`).join("")}
         </nav>
         ${sorted.map(([g, list], i) => `<section class="genre-section" id="genre-${esc(g)}" data-ci="${i % 6}">
-          <h3 class="genre-section__title">${esc(g)}</h3>
+          <h2 class="genre-section__title">${esc(g)}</h2>
           <div class="genre-covers">
             ${list.map(e => `<a class="genre-card" href="#/entry/${encodeURIComponent(e.id)}">${coverHTML(e)}</a>`).join("")}
           </div>
