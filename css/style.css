@@ -9,15 +9,16 @@
     --ink: #141414;
     --muted: #6F6A52;
     --line: #E6E2CC;
-    --serif: "Fraunces", "Noto Serif TC", Georgia, serif;
-    --sans: "Inter", "Noto Serif TC", system-ui, -apple-system, sans-serif;
-    --ui: "Inter", "Noto Sans TC", system-ui, -apple-system, sans-serif;
+    --serif: "Noto Serif TC", serif;
+    --sans: "Noto Serif TC", serif;
+    --ui: "Noto Serif TC", serif;
     --header-h: 64px;
     --panel-x: clamp(20px, 5vw, 72px);
     --accent: var(--yellow);
     --sz-lg: clamp(36px, 4vw, 56px);
     --sz-md: 22px;
     --sz-sm: 14px;
+    --btn-h: 42px;
 }
 
 
@@ -43,7 +44,6 @@ body {
     flex-direction: column;
     font-family: var(--serif);
     font-size: var(--sz-sm);
-    font-variation-settings: "SOFT" 0, "WONK" 1;
     color: var(--ink);
     background: var(--cream);
     -webkit-font-smoothing: antialiased;
@@ -119,7 +119,10 @@ a {
 
 .auth-btn {
     justify-self: end;
-    padding: 5px 14px;
+    display: inline-flex;
+    align-items: center;
+    height: var(--btn-h);
+    padding: 0 14px;
     border: 1px solid var(--ink);
     border-radius: 999px;
     background: transparent;
@@ -215,10 +218,10 @@ a {
     max-width: 640px;
     margin: 0;
     padding-top: 28px;
-    line-height: 1.8;
+    line-height: 1.7;
 }
 
-    .page h2 {
+    .page__title {
         margin: 0 0 16px;
         font-size: var(--sz-lg);
         font-weight: 400;
@@ -236,7 +239,8 @@ a {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 10px 20px;
+    height: var(--btn-h);
+    padding: 0 20px;
     border: 1px solid var(--ink);
     border-radius: 999px;
     background: var(--ink);
@@ -868,7 +872,7 @@ body[data-view="owner"] .panel {
     color: var(--muted);
 }
 
-.profile h2 {
+.profile__name {
     margin: 0 0 12px;
     font-size: var(--sz-lg);
     font-weight: 400;
@@ -964,7 +968,10 @@ body[data-view="owner"] .panel {
 }
 
 .chip {
-    padding: 6px 16px;
+    display: inline-flex;
+    align-items: center;
+    height: var(--btn-h);
+    padding: 0 16px;
     border: 1px solid var(--line);
     border-radius: 999px;
     background: #fff;
@@ -1250,7 +1257,7 @@ body[data-view="owner"] .panel {
 }
 
 .quote {
-    line-height: 1.8;
+    line-height: 1.7;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
@@ -1325,7 +1332,7 @@ dialog {
 .dialog-note {
     margin: 0 0 14px;
     color: var(--muted);
-    line-height: 1.6;
+    line-height: 1.7;
 }
 
     .dialog-note:empty {
@@ -1486,7 +1493,8 @@ dialog {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 18px;
+    height: var(--btn-h);
+    padding: 0 18px;
     border: 1px solid var(--line);
     border-radius: 999px;
     background: #fff;
@@ -1639,8 +1647,7 @@ dialog {
 .sticky__text {
     margin: 0 0 10px;
     font-size: var(--sz-sm);
-    line-height: 1.65;
-    font-variation-settings: "SOFT" 60, "WONK" 1;
+    line-height: 1.7;
 }
 
 .sticky__time {
@@ -1665,7 +1672,6 @@ dialog {
         color: var(--ink);
         font-size: var(--sz-sm);
         font-family: var(--serif);
-        font-variation-settings: "SOFT" 0, "WONK" 1;
         resize: vertical;
     }
 
@@ -1864,7 +1870,7 @@ dialog {
     text-align: center;
 }
 
-.donate-page h2 {
+.donate-title {
     font-size: var(--sz-md);
     font-weight: 700;
     margin: 0 0 12px;
@@ -1935,7 +1941,7 @@ dialog {
     align-items: start;
 }
 
-.recs-page h2 {
+.recs-title {
     font-size: var(--sz-md);
     font-weight: 700;
     margin: 0 0 12px;
@@ -1970,7 +1976,6 @@ dialog {
     color: var(--ink);
     font-size: var(--sz-sm);
     font-family: var(--serif);
-    font-variation-settings: "SOFT" 0, "WONK" 1;
     box-sizing: border-box;
 }
 
@@ -2017,7 +2022,7 @@ textarea.rec-input {
 
 .rec-card__review {
     font-size: var(--sz-sm);
-    line-height: 1.75;
+    line-height: 1.7;
     margin: 0 0 12px;
     color: var(--ink);
     white-space: pre-wrap;
@@ -2184,6 +2189,6 @@ textarea.rec-input {
 }
 
 .btn--sm {
-    padding: 4px 12px;
+    padding: 0 12px;
     font-size: var(--sz-sm);
 }
